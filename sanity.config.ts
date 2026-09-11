@@ -6,8 +6,8 @@ import { structure } from "./sanity/structure";
 
 export default defineConfig({
   name: "mikhaleff-studio", title: "MIKHALEFF STUDIO",
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "replace-me",
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? "lqcc213n",
+  dataset: process.env.SANITY_STUDIO_DATASET ?? "production",
   plugins: [structureTool({ structure }), visionTool()],
   schema: { types: schemaTypes },
 });

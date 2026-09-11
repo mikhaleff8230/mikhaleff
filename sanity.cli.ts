@@ -8,7 +8,7 @@ export default defineCliConfig({
     appId: "h1276xaq45rqrnk08wt0rv5d",
   },
   api: {
-    projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ?? "replace-me",
-    dataset: process.env.NEXT_PUBLIC_SANITY_DATASET ?? "production",
+    projectId: process.env.SANITY_STUDIO_PROJECT_ID ?? "lqcc213n",
+    dataset: process.env.SANITY_STUDIO_DATASET ?? "production",
   },
 });
