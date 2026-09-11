@@ -82,7 +82,10 @@ export async function getArtworks(locale: string): Promise<readonly ArtworkCard[
         video: entry.video && videoPoster ? { ...entry.video, poster: videoPoster } : undefined,
       };
     }) : fallbackArtworks;
-  } catch { return fallbackArtworks; }
+  } catch (error) {
+    console.error("[sanity] Failed to load artworks", error);
+    return fallbackArtworks;
+  }
 }
 
 type RawInteriorScene = Omit<InteriorScene, "image" | "mobileImage"> & { image?: RawSanityImage; mobileImage?: RawSanityImage };
