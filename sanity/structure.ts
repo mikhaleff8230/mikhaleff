@@ -8,6 +8,7 @@ export const structure: StructureResolver = (S) => S.list().title("MIKHALEFF STU
   S.documentTypeListItem("series").title("COLLECTIONS"),
   S.documentTypeListItem("exhibition").title("EXHIBITIONS"),
   S.documentTypeListItem("journal").title("JOURNAL"),
+  S.documentTypeListItem("interiorScene").title("VIEW IN SPACE"),
   S.divider(),
   singleton(S, "HOMEPAGE", "homepage", "homepage"),
   singleton(S, "ABOUT", "about", "about"),
