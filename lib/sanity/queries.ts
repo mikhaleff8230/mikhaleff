@@ -152,7 +152,7 @@ export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   siteTitle, email, instagram, telegram, whatsapp, youtube, facebook, location,
   "siteDescription": ${localized("siteDescription")},
   "shareImage": defaultShareImage.asset->url,
-  "navigation": navigationLabels[]{key, "label": ${localized("label")}}
+  "navigation": navigationLabels[]{key, "label": select($locale == "ru" => label.ru, $locale == "zh" => label.zh, label.en)}
 }`;
 
 export const localizedHomepageQuery = `*[_type == "homepage"][0] {

@@ -7,8 +7,8 @@ export const localizedString = defineType({
     { ...ALL_FIELDS_GROUP, hidden: true },
   ],
   fields: [
-    defineField({ name: "en", title: "English", type: "string", group: "en" }),
-    defineField({ name: "ru", title: "Русский", type: "string", group: "ru" }),
+    defineField({ name: "en", title: "EN", type: "string", group: "en" }),
+    defineField({ name: "ru", title: "RU", type: "string", group: "ru" }),
     defineField({ name: "zh", title: "中文", type: "string", group: "zh" }),
   ],
 });

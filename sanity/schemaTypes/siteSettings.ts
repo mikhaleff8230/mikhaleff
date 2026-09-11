@@ -13,7 +13,17 @@ export const siteSettings = defineType({
     defineField({ name: "facebook", title: "Facebook URL", type: "url" }),
     defineField({ name: "location", type: "string", initialValue: "Europe" }),
     defineField({ name: "defaultShareImage", type: "imageWithMetadata" }),
-    defineField({ name: "navigationLabels", type: "array", of: [{ type: "object", fields: [{ name: "key", type: "string" }, { name: "label", type: "localizedString" }] }] }),
+    defineField({
+      name: "navigationLabels", title: "Navigation translations", type: "array",
+      of: [{
+        type: "object", name: "navigationLabel",
+        fields: [
+          defineField({ name: "key", type: "string", readOnly: true, options: { list: ["works", "collections", "exhibitions", "about", "journal", "contact"] } }),
+          defineField({ name: "label", type: "localizedString" }),
+        ],
+        preview: { select: { title: "label.en", subtitle: "key" } },
+      }],
+    }),
     defineField({ name: "globalSeo", title: "Default SEO", type: "seoFields" }),
   ], preview: { prepare: () => ({ title: "Site settings" }) },
 });

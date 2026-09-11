@@ -7,8 +7,8 @@ export const localizedText = defineType({
     { ...ALL_FIELDS_GROUP, hidden: true },
   ],
   fields: [
-    defineField({ name: "en", title: "English", type: "text", rows: 5, group: "en" }),
-    defineField({ name: "ru", title: "Русский", type: "text", rows: 5, group: "ru" }),
+    defineField({ name: "en", title: "EN", type: "text", rows: 5, group: "en" }),
+    defineField({ name: "ru", title: "RU", type: "text", rows: 5, group: "ru" }),
     defineField({ name: "zh", title: "中文", type: "text", rows: 5, group: "zh" }),
   ],
 });

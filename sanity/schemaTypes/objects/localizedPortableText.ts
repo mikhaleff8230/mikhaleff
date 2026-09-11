@@ -7,8 +7,8 @@ export const localizedPortableText = defineType({
     { ...ALL_FIELDS_GROUP, hidden: true },
   ],
   fields: [
-    defineField({ name: "en", title: "English", type: "array", group: "en", of: [{ type: "block" }, { type: "imageWithMetadata" }] }),
-    defineField({ name: "ru", title: "Русский", type: "array", group: "ru", of: [{ type: "block" }, { type: "imageWithMetadata" }] }),
+    defineField({ name: "en", title: "EN", type: "array", group: "en", of: [{ type: "block" }, { type: "imageWithMetadata" }] }),
+    defineField({ name: "ru", title: "RU", type: "array", group: "ru", of: [{ type: "block" }, { type: "imageWithMetadata" }] }),
     defineField({ name: "zh", title: "中文", type: "array", group: "zh", of: [{ type: "block" }, { type: "imageWithMetadata" }] }),
   ],
 });

@@ -9,15 +9,20 @@ import { getLanguages } from "@/lib/i18n/languages";
 import { getSiteSettings } from "@/lib/content/repository";
 
 const navigation = [
-  ["works", "/en/works"], ["series", "/en/collections"],
+  ["works", "/en/works"], ["collections", "/en/collections"],
   ["exhibitions", "/en/exhibitions"], ["about", "/en/about"],
   ["journal", "/en/journal"], ["contact", "/en/contact"],
 ] as const;
 
+const navigationAliases: Record<string, readonly string[]> = {
+  works: ["works", "artworks"],
+  collections: ["collections", "series"],
+};
+
 export async function SiteHeader({ locale }: { locale: string }) {
   const [languages, settings] = await Promise.all([getLanguages(), getSiteSettings(locale)]);
   const labels = getInterfaceCopy(locale).nav;
-  const translatedNavigation = navigation.map(([key, href], index) => [key === "series" ? labels[index] : settings.navigation.find((item) => item.key === key)?.label || labels[index], href, key] as const);
+  const translatedNavigation = navigation.map(([key, href], index) => [settings.navigation.find((item) => (navigationAliases[key] ?? [key]).includes(item.key))?.label || labels[index], href, key] as const);
   return (
     <header className="site-header">
       <Link className="wordmark" href={`/${locale}`} aria-label="MIKHALEFF homepage">{settings.siteTitle}</Link>
