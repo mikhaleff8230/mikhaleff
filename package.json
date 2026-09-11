@@ -12,8 +12,8 @@
     "start": "next start",
     "lint": "eslint . --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
-    "studio": "sanity dev --config sanity.config.ts",
-    "studio:build": "sanity build --config sanity.config.ts"
+    "studio": "sanity dev",
+    "studio:build": "sanity build"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",
@@ -29,6 +29,7 @@
     "react-dom": "19.2.6",
     "react-konva": "^19.2.7",
     "sanity": "^6.13.1",
+    "styled-components": "^6.5.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
