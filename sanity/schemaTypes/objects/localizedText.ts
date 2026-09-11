@@ -1,9 +1,14 @@
-import { defineArrayMember, defineField, defineType } from "sanity";
+import { ALL_FIELDS_GROUP, defineField, defineType } from "sanity";
 
 export const localizedText = defineType({
-  name: "localizedText", title: "Localized text", type: "array",
-  of: [defineArrayMember({ type: "object", name: "localizedTextValue", fields: [
-    defineField({ name: "language", type: "reference", to: [{ type: "language" }], validation: (rule) => rule.required() }),
-    defineField({ name: "value", type: "text", rows: 5, validation: (rule) => rule.required() }),
-  ], preview: { select: { title: "value", subtitle: "language.nativeName" } } })],
+  name: "localizedText", title: "Localized text", type: "object",
+  groups: [
+    { name: "en", title: "EN", default: true }, { name: "ru", title: "RU" }, { name: "zh", title: "中文" },
+    { ...ALL_FIELDS_GROUP, hidden: true },
+  ],
+  fields: [
+    defineField({ name: "en", title: "English", type: "text", rows: 5, group: "en" }),
+    defineField({ name: "ru", title: "Русский", type: "text", rows: 5, group: "ru" }),
+    defineField({ name: "zh", title: "中文", type: "text", rows: 5, group: "zh" }),
+  ],
 });

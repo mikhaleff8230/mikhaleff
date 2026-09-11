@@ -62,5 +62,5 @@ export const artwork = defineType({
     ] }),
     defineField({ name: "seo", type: "seoFields", group: "seo" }),
   ],
-  preview: { select: { title: "title.0.value", year: "year", status: "availability", media: "mainImage" }, prepare: ({ title, year, status, media }) => ({ title: title ?? "Untitled", subtitle: [year, status].filter(Boolean).join(" · "), media }) },
+  preview: { select: { title: "title.en", year: "year", status: "availability", media: "mainImage" }, prepare: ({ title, year, status, media }) => ({ title: title ?? "Untitled", subtitle: [year, status].filter(Boolean).join(" · "), media }) },
 });

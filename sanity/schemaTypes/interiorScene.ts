@@ -6,7 +6,7 @@ export const interiorScene = defineType({
   type: "document",
   fields: [
     defineField({ name: "title", type: "localizedString", validation: (rule) => rule.required() }),
-    defineField({ name: "slug", type: "slug", options: { source: "title.0.value" }, validation: (rule) => rule.required() }),
+    defineField({ name: "slug", type: "slug", options: { source: "title.en" }, validation: (rule) => rule.required() }),
     defineField({ name: "enabled", type: "boolean", initialValue: true }),
     defineField({ name: "order", type: "number" }),
     defineField({ name: "sceneImage", type: "imageWithMetadata", validation: (rule) => rule.required() }),
@@ -22,5 +22,5 @@ export const interiorScene = defineType({
       { name: "height", type: "number", initialValue: 0.52, validation: (rule) => rule.min(0.05).max(1) },
     ] }),
   ],
-  preview: { select: { title: "title.0.value", subtitle: "sceneType", media: "sceneImage" } },
+  preview: { select: { title: "title.en", subtitle: "sceneType", media: "sceneImage" } },
 });

@@ -19,8 +19,14 @@ export const exhibitionWorksQuery = `*[_type == "artwork" && hideFromArchive != 
   exhibitionFeatured, exhibitionOrder, exhibitionScale, exhibitionAlignment, exhibitionOffset
 }`;
 
-const localized = (field: string) => `coalesce(${field}[language->code == $locale][0].value, ${field}[language->code == "en"][0].value, ${field}[0].value)`;
-const localizedFrom = (reference: string, field: string) => `coalesce(${reference}->${field}[language->code == $locale][0].value, ${reference}->${field}[language->code == "en"][0].value, ${reference}->${field}[0].value)`;
+const localized = (field: string) => `coalesce(
+  select($locale == "ru" => ${field}.ru, $locale == "zh" => ${field}.zh, ${field}.en),
+  ${field}.en, ${field}.ru, ${field}.zh
+)`;
+const localizedFrom = (reference: string, field: string) => `coalesce(
+  select($locale == "ru" => ${reference}->${field}.ru, $locale == "zh" => ${reference}->${field}.zh, ${reference}->${field}.en),
+  ${reference}->${field}.en, ${reference}->${field}.ru, ${reference}->${field}.zh
+)`;
 
 export const artworksQuery = `*[_type == "artwork" && hideFromArchive != true] | order(artworkOrder asc, year desc) {
   "slug": slug.current,
@@ -78,7 +84,7 @@ export const artworksQuery = `*[_type == "artwork" && hideFromArchive != true] |
   "series": ${localizedFrom("series", "title")},
   availability,
   "description": coalesce(
-    pt::text(coalesce(description[language->code == $locale][0].value, description[language->code == "en"][0].value, description[0].value)),
+    pt::text(${localized("description")}),
     ${localized("shortDescription")}
   )
 }`;
@@ -126,7 +132,7 @@ export const journalQuery = `*[_type == "journal"] | order(date desc) {
   "slug": slug.current,
   "title": ${localized("title")}, category, date,
   "excerpt": ${localized("excerpt")},
-  "body": coalesce(content[language->code == $locale][0].value[].children[].text, content[language->code == "en"][0].value[].children[].text, []),
+  "body": coalesce((${localized("content")})[].children[].text, []),
   "imageSrc": cover.asset->url,
   "imageAlt": coalesce(${localized("cover.alt")}, ${localized("title")})
 }`;
@@ -134,8 +140,8 @@ export const journalQuery = `*[_type == "journal"] | order(date desc) {
 export const aboutQuery = `*[_type == "about"][0] {
   "quote": ${localized("quote")},
   "shortBio": ${localized("shortBio")},
-  "biographyText": pt::text(coalesce(fullBiography[language->code == $locale][0].value, fullBiography[language->code == "en"][0].value, [])),
-  "statementText": pt::text(coalesce(artistStatement[language->code == $locale][0].value, artistStatement[language->code == "en"][0].value, [])),
+  "biographyText": pt::text(${localized("fullBiography")}),
+  "statementText": pt::text(${localized("artistStatement")}),
   "portraitSrc": portrait.asset->url,
   "portraitAlt": coalesce(${localized("portrait.alt")}, artistName),
   "studioSrc": studioImages[0].asset->url,

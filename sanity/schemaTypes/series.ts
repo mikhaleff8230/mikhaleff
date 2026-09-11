@@ -4,7 +4,7 @@ export const series = defineType({
   name: "series", title: "Collection", type: "document",
   fields: [
     defineField({ name: "title", type: "localizedString", validation: (rule) => rule.required() }),
-    defineField({ name: "slug", type: "slug", options: { source: "title.0.value" }, validation: (rule) => rule.required() }),
+    defineField({ name: "slug", type: "slug", options: { source: "title.en" }, validation: (rule) => rule.required() }),
     defineField({ name: "subtitle", type: "localizedString" }),
     defineField({ name: "introduction", type: "localizedText" }),
     defineField({ name: "description", type: "localizedPortableText" }),
@@ -17,5 +17,5 @@ export const series = defineType({
     defineField({ name: "featured", type: "boolean", initialValue: false }), defineField({ name: "order", type: "number" }),
     defineField({ name: "homepageFeature", type: "boolean", initialValue: false }), defineField({ name: "seo", type: "seoFields" }),
   ],
-  preview: { select: { title: "title.0.value", start: "startYear", end: "endYear", media: "coverImage" }, prepare: ({ title, start, end, media }) => ({ title, subtitle: [start, end].filter(Boolean).join("–"), media }) },
+  preview: { select: { title: "title.en", start: "startYear", end: "endYear", media: "coverImage" }, prepare: ({ title, start, end, media }) => ({ title, subtitle: [start, end].filter(Boolean).join("–"), media }) },
 });

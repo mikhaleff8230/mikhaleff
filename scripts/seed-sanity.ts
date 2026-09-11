@@ -6,17 +6,14 @@ import {aboutContent, fallbackExhibitions, fallbackJournal, fallbackSeries} from
 import {fallbackInteriorScenes} from "../lib/content/fallback-interior-scenes";
 
 const client = getCliClient({apiVersion: "2026-09-01"});
-const languageRef = {_type: "reference", _ref: "language-en"};
 const assetRefs = new Map<string, string>();
-const localizedString = (value: string) => [{_key: "en", _type: "localizedStringValue", language: languageRef, value}];
-const localizedText = (value: string) => [{_key: "en", _type: "localizedTextValue", language: languageRef, value}];
+const localizedString = (value: string) => ({_type: "localizedString", en: value});
+const localizedText = (value: string) => ({_type: "localizedText", en: value});
 const blocks = (paragraphs: readonly string[]) => paragraphs.map((text, index) => ({
   _key: `p-${index + 1}`, _type: "block", style: "normal", markDefs: [],
   children: [{_key: `s-${index + 1}`, _type: "span", marks: [], text}],
 }));
-const localizedPortableText = (paragraphs: readonly string[]) => [{
-  _key: "en", _type: "localizedPortableTextValue", language: languageRef, value: blocks(paragraphs),
-}];
+const localizedPortableText = (paragraphs: readonly string[]) => ({_type: "localizedPortableText", en: blocks(paragraphs)});
 const ref = (id: string) => ({_type: "reference", _ref: id});
 const keyedRef = (id: string, key = id) => ({_key: key, ...ref(id)});
 const slug = (current: string) => ({_type: "slug", current});
