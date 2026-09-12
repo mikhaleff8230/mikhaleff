@@ -12,10 +12,12 @@ export const fallbackHomepage = {
     eyebrow: "Art as a state of consciousness",
     quote: "A long walk through the dunes of consciousness led me to an understanding of the nature of abstraction…",
     linkLabel: "About the artist",
+    image: { src: "/artworks/untitled-028.png", alt: "Abstract artwork detail for the artist statement", position: "48% 52%" },
   },
   selectedWorks: {
     eyebrow: "Selected works",
     linkLabel: "View all works",
+    note: "Painting is a way\nto be closer to the real.",
     items: [
       { slug: "untitled-028", title: "Untitled 028", year: "2026", medium: "Oil on canvas", dimensions: "160 × 120 cm", image: { src: "/artworks/untitled-028.png", alt: "Ivory abstract painting with rust and graphite gestures", position: "45% 48%" } },
       { slug: "untitled-027", title: "Untitled 027", year: "2026", medium: "Mixed media", dimensions: "180 × 140 cm", image: { src: "/artworks/inner-landscapes.png", alt: "Dark abstract painting crossed by a red gesture", position: "68% 55%" } },
@@ -102,10 +104,6 @@ export const fallbackArtworks: readonly ArtworkCard[] = fallbackArtworkEntries.m
     { ...artwork.image, alt: `${artwork.title}, detail 02`, position: "58% 54%" },
     { ...artwork.image, alt: `${artwork.title}, detail 03`, position: "82% 34%" },
   ],
-  interiorImages: [{
-    src: "/exhibitions/inner-landscapes-installation-placeholder.png",
-    alt: `${artwork.title} in an exhibition interior`,
-  }],
   exhibition: {
     slug: "inner-landscapes-almaty",
     title: "Inner Landscapes",

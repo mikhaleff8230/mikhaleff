@@ -13,7 +13,7 @@ export const series = defineType({
     defineField({ name: "coverImage", type: "imageWithMetadata", validation: (rule) => rule.required() }),
     defineField({ name: "heroImage", type: "imageWithMetadata" }),
     defineField({ name: "detailImages", type: "array", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
-    defineField({ name: "artworks", type: "array", of: [defineArrayMember({ type: "reference", to: [{ type: "artwork" }] })] }),
+    defineField({ name: "artworks", title: "Legacy artwork links", type: "array", hidden: true, readOnly: true, description: "Legacy field kept for data compatibility. Assign the Collection inside each Artwork instead.", of: [defineArrayMember({ type: "reference", to: [{ type: "artwork" }] })] }),
     defineField({ name: "featured", type: "boolean", initialValue: false }), defineField({ name: "order", type: "number" }),
     defineField({ name: "homepageFeature", type: "boolean", initialValue: false }), defineField({ name: "seo", type: "seoFields" }),
   ],

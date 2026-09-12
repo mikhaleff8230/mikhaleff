@@ -21,7 +21,7 @@ export function SelectedWorks({ locale, content }: { locale: string; content: Ho
           </Link>
         ))}
       </div>
-      <p className="selected-works__note">Painting is a way<br />to be closer to the real.</p>
+      <p className="selected-works__note">{content.note.split("\n").map((line) => <span key={line}>{line}<br /></span>)}</p>
     </section>
   );
 }

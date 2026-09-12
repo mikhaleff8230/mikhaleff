@@ -1,4 +1,5 @@
 import { about } from "./about";
+import { archivePages } from "./archivePages";
 import { artwork } from "./artwork";
 import { contact } from "./contact";
 import { exhibition } from "./exhibition";
@@ -9,6 +10,7 @@ import { language } from "./language";
 import { series } from "./series";
 import { siteSettings } from "./siteSettings";
 import { dimensions } from "./objects/dimensions";
+import { archivePageSettings } from "./objects/archivePageSettings";
 import { homepageSection } from "./objects/homepageSection";
 import { imageWithMetadata } from "./objects/imageWithMetadata";
 import { localizedPortableText } from "./objects/localizedPortableText";
@@ -17,6 +19,6 @@ import { localizedText } from "./objects/localizedText";
 import { seoFields } from "./objects/seoFields";
 
 export const schemaTypes = [
-  localizedString, localizedText, localizedPortableText, imageWithMetadata, dimensions, seoFields, homepageSection,
-  language, artwork, series, exhibition, journal, interiorScene, homepage, about, contact, siteSettings,
+  localizedString, localizedText, localizedPortableText, imageWithMetadata, dimensions, seoFields, homepageSection, archivePageSettings,
+  language, artwork, series, exhibition, journal, interiorScene, homepage, about, contact, archivePages, siteSettings,
 ];

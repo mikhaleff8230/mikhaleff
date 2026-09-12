@@ -12,7 +12,7 @@ export const exhibition = defineType({
     defineField({ name: "cover", type: "imageWithMetadata" }),
     defineField({ name: "gallery", type: "array", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
     defineField({ name: "installationViews", type: "array", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
-    defineField({ name: "artworks", type: "array", of: [defineArrayMember({ type: "reference", to: [{ type: "artwork" }] })] }),
+    defineField({ name: "artworks", title: "Legacy artwork links", type: "array", hidden: true, readOnly: true, description: "Legacy field kept for compatibility. Assign exhibitions inside each Artwork instead.", of: [defineArrayMember({ type: "reference", to: [{ type: "artwork" }] })] }),
     defineField({ name: "series", title: "Collections", type: "array", of: [defineArrayMember({ type: "reference", to: [{ type: "series" }] })] }),
     defineField({ name: "externalLink", type: "url" }), defineField({ name: "cataloguePDF", type: "file" }),
     defineField({ name: "pressLinks", type: "array", of: [defineArrayMember({ type: "object", fields: [{ name: "label", type: "string" }, { name: "url", type: "url" }] })] }),

@@ -2,15 +2,15 @@ import { defineField, defineType } from "sanity";
 
 export const interiorScene = defineType({
   name: "interiorScene",
-  title: "View in Space scene",
+  title: "Global interior scene",
   type: "document",
   fields: [
     defineField({ name: "title", type: "localizedString", validation: (rule) => rule.required() }),
     defineField({ name: "slug", type: "slug", options: { source: "title.en" }, validation: (rule) => rule.required() }),
     defineField({ name: "enabled", type: "boolean", initialValue: true }),
     defineField({ name: "order", type: "number" }),
-    defineField({ name: "sceneImage", type: "imageWithMetadata", validation: (rule) => rule.required() }),
-    defineField({ name: "mobileSceneImage", type: "imageWithMetadata" }),
+    defineField({ name: "sceneImage", title: "Interior background image", type: "imageWithMetadata", description: "Global room image used for every artwork that opens this scene.", validation: (rule) => rule.required() }),
+    defineField({ name: "mobileSceneImage", title: "Mobile interior background", type: "imageWithMetadata", description: "Optional vertical version of the same room for mobile screens." }),
     defineField({ name: "sceneType", type: "string", options: { list: ["gallery", "living", "minimal", "dark", "classic", "custom"] }, initialValue: "gallery" }),
     defineField({ name: "wallPhysicalWidthCm", type: "number", validation: (rule) => rule.positive() }),
     defineField({ name: "wallPhysicalHeightCm", type: "number", validation: (rule) => rule.positive() }),

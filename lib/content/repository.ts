@@ -1,6 +1,7 @@
+import type { ArtworksQueryResult, InteriorScenesQueryResult, SeriesQueryResult, ExhibitionsQueryResult, JournalQueryResult, AboutQueryResult, SiteSettingsQueryResult, LocalizedHomepageQueryResult, ArchivePagesQueryResult } from "@/sanity.types";
 import type { ArtworkCard, ArtworkExhibition, ArtworkVideo, ExhibitionEntry, HomepageContent, InteriorScene, JournalEntry, SeriesEntry, ImageAsset } from "@/types/content";
 import { sanityClient, sanityConfigured } from "@/lib/sanity/client";
-import { aboutQuery, artworksQuery, exhibitionsQuery, interiorScenesQuery, journalQuery, localizedHomepageQuery, seriesQuery, siteSettingsQuery } from "@/lib/sanity/queries";
+import { aboutQuery, artworksQuery, exhibitionsQuery, interiorScenesQuery, journalQuery, localizedHomepageQuery, seriesQuery, siteSettingsQuery, archivePagesQuery } from "@/lib/sanity/queries";
 import { aboutContent, fallbackExhibitions, fallbackJournal, fallbackSeries } from "@/lib/content/fallback-editorial";
 import { fallbackArtworks, fallbackHomepage } from "@/lib/content/fallback-homepage";
 import { imageUrl } from "@/lib/sanity/image";
@@ -19,7 +20,7 @@ function status(value?: string): ArtworkCard["status"] {
   return "Available";
 }
 
-type RawArtworkSummary = Omit<ArtworkCard, "image" | "primaryImage" | "detailImages" | "textureImages" | "interiorImages" | "exhibition" | "video" | "status"> & {
+type RawArtworkSummary = Omit<ArtworkCard, "image" | "primaryImage" | "detailImages" | "textureImages" | "exhibition" | "video" | "status"> & {
   imageSrc?: string;
   imageAlt?: string;
   availability?: string;
@@ -32,7 +33,6 @@ type RawArtwork = RawArtworkSummary & {
   primaryImageHeight?: number;
   detailImages?: RawSanityImage[];
   textureImages?: RawSanityImage[];
-  interiorImages?: RawSanityImage[];
   exhibition?: Omit<ArtworkExhibition, "image"> & { image?: RawSanityImage };
   video?: Omit<ArtworkVideo, "poster"> & { poster?: RawSanityImage };
 };
@@ -43,6 +43,9 @@ type RawSanityImage = {
   crop?: { top: number; bottom: number; left: number; right: number };
   hotspot?: { x: number; y: number; height: number; width: number };
   alt?: string;
+  src?: string;
+  width?: number;
+  height?: number;
 };
 
 function configuredCrop(source: RawSanityImage | undefined, width: number, height: number): ImageAsset | undefined {
@@ -51,14 +54,27 @@ function configuredCrop(source: RawSanityImage | undefined, width: number, heigh
   return { src, alt: source.alt || "Artwork image", width, height };
 }
 
-function configuredCrops(sources: RawSanityImage[] | undefined, width: number, height: number) {
-  return (sources || []).map((source) => configuredCrop(source, width, height)).filter((item): item is ImageAsset => Boolean(item));
+function configuredImage(source: RawSanityImage | undefined): ImageAsset | undefined {
+  if (!source?.src) return undefined;
+  return {
+    src: source.src,
+    alt: source.alt || "Artwork image",
+    ...(source.width ? { width: source.width } : {}),
+    ...(source.height ? { height: source.height } : {}),
+  };
+}
+
+function configuredImages(sources: RawSanityImage[] | undefined): ImageAsset[] {
+  return (sources || []).flatMap<ImageAsset>((source) => {
+    const nextImage = configuredImage(source);
+    return nextImage ? [nextImage] : [];
+  });
 }
 
 export async function getArtworks(locale: string): Promise<readonly ArtworkCard[]> {
   if (!sanityConfigured) return fallbackArtworks;
   try {
-    const entries = await sanityClient.fetch<RawArtwork[]>(artworksQuery, { locale }, fetchOptions);
+    const entries = await sanityClient.fetch<ArtworksQueryResult>(artworksQuery, { locale }, fetchOptions) as unknown as RawArtwork[];
     return entries.length ? entries.map((entry) => {
       const archiveImage = image(entry.imageSrc, entry.imageAlt, fallbackHomepage.hero.image);
       const videoPoster = configuredCrop(entry.video?.poster, 1920, 800);
@@ -73,9 +89,8 @@ export async function getArtworks(locale: string): Promise<readonly ArtworkCard[
           entry.primaryImageWidth,
           entry.primaryImageHeight,
         ),
-        detailImages: configuredCrops(entry.detailImages, 1440, 900),
-        textureImages: configuredCrops(entry.textureImages, 1440, 900),
-        interiorImages: configuredCrops(entry.interiorImages, 1920, 1080),
+        detailImages: configuredImages(entry.detailImages),
+        textureImages: configuredImages(entry.textureImages),
         exhibition: entry.exhibition ? {
           ...entry.exhibition,
           image: configuredCrop(entry.exhibition.image, 1920, 1080),
@@ -94,11 +109,11 @@ type RawInteriorScene = Omit<InteriorScene, "image" | "mobileImage"> & { image?:
 export async function getInteriorScenes(locale: string): Promise<readonly InteriorScene[]> {
   if (!sanityConfigured) return fallbackInteriorScenes;
   try {
-    const entries = await sanityClient.fetch<RawInteriorScene[]>(interiorScenesQuery, { locale }, fetchOptions);
+    const entries = await sanityClient.fetch<InteriorScenesQueryResult>(interiorScenesQuery, { locale }, fetchOptions) as unknown as RawInteriorScene[];
     return entries.reduce<InteriorScene[]>((scenes, entry) => {
-      const sceneImage = configuredCrop(entry.image, 2200, 1400);
+      const sceneImage = configuredImage(entry.image);
       if (!sceneImage) return scenes;
-      const mobileImage = configuredCrop(entry.mobileImage, 1200, 1500);
+      const mobileImage = configuredImage(entry.mobileImage);
       scenes.push({
         slug: entry.slug,
         title: entry.title,
@@ -120,7 +135,7 @@ type RawSeries = Omit<SeriesEntry, "cover" | "years"> & { startYear?: number; en
 export async function getSeries(locale: string): Promise<readonly SeriesEntry[]> {
   if (!sanityConfigured) return fallbackSeries;
   try {
-    const entries = await sanityClient.fetch<RawSeries[]>(seriesQuery, { locale }, fetchOptions);
+    const entries = await sanityClient.fetch<SeriesQueryResult>(seriesQuery, { locale }, fetchOptions) as unknown as RawSeries[];
     return entries.length ? entries.map((entry) => ({ ...entry, years: [entry.startYear, entry.endYear].filter(Boolean).join(" — "), cover: image(entry.imageSrc, entry.imageAlt, fallbackSeries[0].cover) })) : fallbackSeries;
   } catch { return fallbackSeries; }
 }
@@ -130,7 +145,7 @@ type RawExhibition = Omit<ExhibitionEntry, "image" | "year" | "dates" | "format"
 export async function getExhibitions(locale: string): Promise<readonly ExhibitionEntry[]> {
   if (!sanityConfigured) return fallbackExhibitions;
   try {
-    const entries = await sanityClient.fetch<RawExhibition[]>(exhibitionsQuery, { locale }, fetchOptions);
+    const entries = await sanityClient.fetch<ExhibitionsQueryResult>(exhibitionsQuery, { locale }, fetchOptions) as unknown as RawExhibition[];
     return entries.length ? entries.map((entry) => ({ ...entry, year: entry.startDate?.slice(0, 4) || "", dates: [entry.startDate, entry.endDate].filter(Boolean).join(" — "), format: entry.type === "solo" ? "Solo exhibition" : "Group exhibition", image: image(entry.imageSrc, entry.imageAlt, fallbackExhibitions[0].image) })) : fallbackExhibitions;
   } catch { return fallbackExhibitions; }
 }
@@ -140,7 +155,7 @@ type RawJournal = Omit<JournalEntry, "image" | "date" | "category"> & { date?: s
 export async function getJournal(locale: string): Promise<readonly JournalEntry[]> {
   if (!sanityConfigured) return fallbackJournal;
   try {
-    const entries = await sanityClient.fetch<RawJournal[]>(journalQuery, { locale }, fetchOptions);
+    const entries = await sanityClient.fetch<JournalQueryResult>(journalQuery, { locale }, fetchOptions) as unknown as RawJournal[];
     const categories = new Set<JournalEntry["category"]>(["Studio note", "Conversation", "Essay", "News"]);
     return entries.length ? entries.map((entry) => ({ ...entry, category: categories.has(entry.category as JournalEntry["category"]) ? entry.category as JournalEntry["category"] : "News", date: entry.date ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(entry.date)) : "", body: entry.body?.filter(Boolean) || [], image: image(entry.imageSrc, entry.imageAlt, fallbackJournal[0].image) })) : fallbackJournal;
   } catch { return fallbackJournal; }
@@ -152,7 +167,7 @@ export async function getAbout(locale: string) {
   const fallbackPortrait = { src: "/studio/alexander-mikhaleff-studio.png", alt: "Alexander Mikhaleff in his studio" };
   if (!sanityConfigured) return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait };
   try {
-    const entry = await sanityClient.fetch<RawAbout | null>(aboutQuery, { locale }, fetchOptions);
+    const entry = await sanityClient.fetch<AboutQueryResult>(aboutQuery, { locale }, fetchOptions) as unknown as RawAbout | null;
     if (!entry) return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait };
     const biography = entry.biographyText?.split(/\n{2,}/).filter(Boolean) || (entry.shortBio ? [entry.shortBio] : []);
     const statement = entry.statementText?.split(/\n{2,}/).filter(Boolean) || [];
@@ -160,12 +175,12 @@ export async function getAbout(locale: string) {
   } catch { return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait }; }
 }
 
-type RawHomepage = { heroEyebrow?: string; heroTitle?: string; heroSubtitle?: string; heroImageSrc?: string; heroImageAlt?: string; heroArtworkTitle?: string; heroArtworkYear?: string; heroArtworkMedium?: string; heroArtworkDimensions?: string; statement?: string; selectedWorks?: RawArtworkSummary[]; featuredSeries?: RawSeries };
+type RawHomepage = { heroEyebrow?: string; heroTitle?: string; heroSubtitle?: string; heroImageSrc?: string; heroImageAlt?: string; heroArtworkTitle?: string; heroArtworkYear?: string; heroArtworkMedium?: string; heroArtworkDimensions?: string; statementEyebrow?: string; statement?: string; statementLinkLabel?: string; statementImageSrc?: string; statementImageAlt?: string; selectedWorksEyebrow?: string; selectedWorksLinkLabel?: string; selectedWorksNote?: string; selectedWorks?: RawArtworkSummary[]; featuredEyebrow?: string; featuredLinkLabel?: string; featuredSeries?: RawSeries; exhibitionsEyebrow?: string; exhibitionsTitle?: string; exhibitionsNote?: string; exhibitionsLinkLabel?: string; exhibitionsImageSrc?: string; exhibitionsImageAlt?: string; contactTitle?: string; contactHeading?: string; contactEyebrow?: string; contactLinkLabel?: string };
 
 export async function getHomepage(locale: string): Promise<HomepageContent> {
   if (!sanityConfigured) return fallbackHomepage;
   try {
-    const entry = await sanityClient.fetch<RawHomepage | null>(localizedHomepageQuery, { locale }, fetchOptions);
+    const entry = await sanityClient.fetch<LocalizedHomepageQueryResult>(localizedHomepageQuery, { locale }, fetchOptions) as unknown as RawHomepage | null;
     if (!entry?.heroImageSrc) return fallbackHomepage;
     const exhibitions = await getExhibitions(locale);
     const selectedWorks = entry.selectedWorks?.length ? entry.selectedWorks.map((work) => ({ ...work, status: status(work.availability), image: image(work.imageSrc, work.imageAlt, fallbackHomepage.hero.image) })) : [...fallbackHomepage.selectedWorks.items];
@@ -173,10 +188,11 @@ export async function getHomepage(locale: string): Promise<HomepageContent> {
     return {
       ...fallbackHomepage,
       hero: { ...fallbackHomepage.hero, eyebrow: entry.heroEyebrow || fallbackHomepage.hero.eyebrow, title: (entry.heroTitle || fallbackHomepage.hero.title.join("\n")).split("\n"), subtitle: entry.heroSubtitle || fallbackHomepage.hero.subtitle, image: image(entry.heroImageSrc, entry.heroImageAlt, fallbackHomepage.hero.image), artwork: { title: entry.heroArtworkTitle || fallbackHomepage.hero.artwork.title, year: entry.heroArtworkYear || fallbackHomepage.hero.artwork.year, medium: entry.heroArtworkMedium || fallbackHomepage.hero.artwork.medium, dimensions: entry.heroArtworkDimensions || fallbackHomepage.hero.artwork.dimensions } },
-      statement: { ...fallbackHomepage.statement, quote: entry.statement || fallbackHomepage.statement.quote },
-      selectedWorks: { ...fallbackHomepage.selectedWorks, items: selectedWorks },
-      featuredSeries: featured ? { ...fallbackHomepage.featuredSeries, title: featured.title, years: [featured.startYear, featured.endYear].filter(Boolean).join(" — "), description: featured.description, slug: featured.slug, image: image(featured.imageSrc, featured.imageAlt, fallbackHomepage.featuredSeries.image) } : fallbackHomepage.featuredSeries,
-      exhibitions: exhibitions.length ? { ...fallbackHomepage.exhibitions, image: exhibitions[0].image, items: exhibitions.slice(0, 5).map((exhibition) => ({ year: exhibition.year, title: exhibition.title, location: `${exhibition.city}, ${exhibition.country}` })) } : fallbackHomepage.exhibitions,
+      statement: { ...fallbackHomepage.statement, eyebrow: entry.statementEyebrow || fallbackHomepage.statement.eyebrow, quote: entry.statement || fallbackHomepage.statement.quote, linkLabel: entry.statementLinkLabel || fallbackHomepage.statement.linkLabel, image: image(entry.statementImageSrc, entry.statementImageAlt, fallbackHomepage.statement.image) },
+      selectedWorks: { ...fallbackHomepage.selectedWorks, eyebrow: entry.selectedWorksEyebrow || fallbackHomepage.selectedWorks.eyebrow, linkLabel: entry.selectedWorksLinkLabel || fallbackHomepage.selectedWorks.linkLabel, note: entry.selectedWorksNote || fallbackHomepage.selectedWorks.note, items: selectedWorks },
+      featuredSeries: featured ? { ...fallbackHomepage.featuredSeries, eyebrow: entry.featuredEyebrow || fallbackHomepage.featuredSeries.eyebrow, linkLabel: entry.featuredLinkLabel || fallbackHomepage.featuredSeries.linkLabel, title: featured.title, years: [featured.startYear, featured.endYear].filter(Boolean).join(" — "), description: featured.description, slug: featured.slug, image: image(featured.imageSrc, featured.imageAlt, fallbackHomepage.featuredSeries.image) } : fallbackHomepage.featuredSeries,
+      exhibitions: exhibitions.length ? { ...fallbackHomepage.exhibitions, eyebrow: entry.exhibitionsEyebrow || fallbackHomepage.exhibitions.eyebrow, title: entry.exhibitionsTitle || fallbackHomepage.exhibitions.title, note: entry.exhibitionsNote || fallbackHomepage.exhibitions.note, linkLabel: entry.exhibitionsLinkLabel || fallbackHomepage.exhibitions.linkLabel, image: image(entry.exhibitionsImageSrc, entry.exhibitionsImageAlt, exhibitions[0].image), items: exhibitions.slice(0, 5).map((exhibition) => ({ year: exhibition.year, title: exhibition.title, location: `${exhibition.city}, ${exhibition.country}` })) } : fallbackHomepage.exhibitions,
+      contact: { ...fallbackHomepage.contact, title: (entry.contactTitle || fallbackHomepage.contact.title.join("\n")).split("\n"), heading: entry.contactHeading || fallbackHomepage.contact.heading, eyebrow: entry.contactEyebrow || fallbackHomepage.contact.eyebrow, linkLabel: entry.contactLinkLabel || fallbackHomepage.contact.linkLabel },
     };
   } catch { return fallbackHomepage; }
 }
@@ -200,7 +216,44 @@ const fallbackSettings: SiteSettings = { siteTitle: "MIKHALEFF", email: "hello@m
 export async function getSiteSettings(locale: string): Promise<SiteSettings> {
   if (!sanityConfigured) return fallbackSettings;
   try {
-    const settings = await sanityClient.fetch<Partial<SiteSettings> | null>(siteSettingsQuery, { locale }, siteSettingsFetchOptions);
+    const settings = await sanityClient.fetch<SiteSettingsQueryResult>(siteSettingsQuery, { locale }, siteSettingsFetchOptions) as unknown as Partial<SiteSettings> | null;
     return settings ? { ...fallbackSettings, ...settings, navigation: settings.navigation || [] } : fallbackSettings;
   } catch { return fallbackSettings; }
+}
+
+
+export type ArchivePageKey = "works" | "collections" | "exhibitions" | "journal";
+export type ArchivePageContent = {
+  eyebrow: string; title: string; subtitle: string; note?: string; ctaLabel?: string;
+  image?: ImageAsset; seoTitle?: string; seoDescription?: string; seoImageSrc?: string; canonical?: string; noindex?: boolean;
+};
+
+const archiveDefaults: Record<ArchivePageKey, ArchivePageContent> = {
+  works: { eyebrow: "/ Works", title: "Paintings", subtitle: "Fragments of a larger consciousness", note: "Each painting is a trace of a state — a moment between structure and freedom, form and formlessness.", ctaLabel: "Explore the works", image: fallbackHomepage.hero.image },
+  collections: { eyebrow: "/ Collections", title: "Collections", subtitle: "Different states. One continuous exploration.", note: "Each collection is a chapter in an ongoing search — a reflection of inner landscapes, material experiments and evolving states of perception." },
+  exhibitions: { eyebrow: "/ Exhibitions", title: "Exhibitions", subtitle: "Solo and group exhibitions. A continuing dialogue." },
+  journal: { eyebrow: "/ Journal", title: "Journal", subtitle: "Studio notes, conversations and fragments of process." },
+};
+
+export async function getArchivePage(locale: string, page: ArchivePageKey): Promise<ArchivePageContent> {
+  if (!sanityConfigured) return archiveDefaults[page];
+  try {
+    const result = await sanityClient.fetch<ArchivePagesQueryResult>(archivePagesQuery, { locale }, fetchOptions);
+    const entry = result?.[page];
+    if (!entry) return archiveDefaults[page];
+    const defaults = archiveDefaults[page];
+    return {
+      eyebrow: entry.eyebrow || defaults.eyebrow,
+      title: entry.title || defaults.title,
+      subtitle: entry.subtitle || defaults.subtitle,
+      note: entry.note || defaults.note,
+      ctaLabel: entry.ctaLabel || defaults.ctaLabel,
+      image: entry.imageSrc ? { src: entry.imageSrc, alt: entry.imageAlt || entry.title || defaults.title } : defaults.image,
+      seoTitle: entry.seoTitle || undefined, seoDescription: entry.seoDescription || undefined, seoImageSrc: entry.seoImageSrc || undefined,
+      canonical: entry.canonical || undefined, noindex: entry.noindex || undefined,
+    };
+  } catch (error) {
+    console.error(`[sanity] Failed to load archive page ${page}`, error);
+    return archiveDefaults[page];
+  }
 }

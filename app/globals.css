@@ -352,7 +352,7 @@ button { font: inherit; }
 .artwork-open { position: relative; display: block; width: 100%; height: clamp(31rem, 64svh, 48rem); padding: 0; overflow: hidden; border: 0; background: var(--color-bg-soft); cursor: zoom-in; view-transition-name: selected-artwork; }
 .artwork-open__frame { position: absolute; inset: 0; display: block; transform-origin: center; }
 .artwork-open__frame img { object-fit: contain; object-position: center; }
-.artwork-open.is-detail img { object-fit: cover; }
+.artwork-open.is-detail img { object-fit: contain; }
 .artwork-open__zoom { position: absolute; z-index: 4; right: 1rem; bottom: 1rem; display: grid; place-items: center; width: 4rem; height: 4rem; border: 1px solid var(--color-on-artwork-line); border-radius: 50%; background: var(--color-cursor-surface); color: var(--color-cursor-text); font-size: 0.57rem; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0; transform: translateY(0.35rem); transition: opacity var(--motion-fast), transform var(--motion-fast); }
 .artwork-open:hover .artwork-open__zoom, .artwork-open:focus-visible .artwork-open__zoom { opacity: 1; transform: none; }
 .artwork-slide-controls { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; min-height: 2.5rem; color: var(--color-muted); font-size: 0.58rem; letter-spacing: 0.13em; }
@@ -375,12 +375,13 @@ button { font: inherit; }
 .artwork-preview-rail { display: flex; gap: clamp(1rem, 2vw, 2rem); overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; }
 .artwork-preview-rail::-webkit-scrollbar { display: none; }
 .artwork-preview { position: relative; display: block; flex: 0 0 clamp(8.5rem, 13vw, 13rem); min-height: clamp(7.5rem, 12vw, 12rem); padding: 0; overflow: hidden; border: 0; background: var(--color-bg-soft); color: inherit; cursor: pointer; scroll-snap-align: start; }
-.artwork-preview img { object-fit: cover; transition: transform var(--motion-slow) var(--ease-gallery); }
+.artwork-preview img { object-fit: contain; transition: transform var(--motion-slow) var(--ease-gallery); }
 .artwork-preview:hover img { transform: scale(var(--hover-zoom)); }
 .artwork-preview::after { content: ""; position: absolute; z-index: 2; inset: 0; border: 1px solid transparent; pointer-events: none; transition: border-color var(--motion-fast); }
 .artwork-preview.is-active::after, .artwork-preview:focus-visible::after { border-color: var(--color-line-strong); }
 .artwork-preview--interior { display: grid; grid-template-columns: minmax(17rem, 27vw) auto; flex-basis: clamp(27rem, 38vw, 40rem); gap: 1.5rem; align-items: center; overflow: visible; background: transparent; }
 .artwork-preview--interior > span { position: relative; align-self: stretch; min-height: inherit; overflow: hidden; }
+.artwork-preview--interior img { object-fit: cover; }
 .artwork-preview--interior small { white-space: nowrap; font-size: 0.58rem; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; }
 .artwork-preview--interior b { margin-left: 0.8rem; font-weight: 400; }
 .artwork-preview-arrow, .viewer__rail-arrow { position: absolute; z-index: 5; top: 50%; display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 1px solid var(--color-line); border-radius: 50%; background: var(--color-bg-elevated); color: var(--color-fg); cursor: pointer; transform: translateY(-50%); }
@@ -399,7 +400,7 @@ button { font: inherit; }
 .artwork-details__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1rem, 2vw, 2rem); }
 .artwork-details figure { margin: 0; }
 .artwork-detail-open { position: relative; display: block; width: 100%; aspect-ratio: 1.65 / 1; padding: 0; overflow: hidden; border: 0; background: var(--color-bg-soft); color: var(--color-video-text); cursor: zoom-in; }
-.artwork-detail-open img { object-fit: cover; transition: transform var(--motion-slow) var(--ease-gallery); }
+.artwork-detail-open img { object-fit: contain; transition: transform var(--motion-slow) var(--ease-gallery); }
 .artwork-detail-open > span { position: absolute; z-index: 2; inset: 50% auto auto 50%; display: grid; place-items: center; width: 3.75rem; height: 3.75rem; border: 1px solid var(--color-video-line); border-radius: 50%; background: var(--color-cursor-surface); font-size: 0.52rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0; transform: translate(-50%, -42%); transition: opacity var(--motion-fast), transform var(--motion-fast); }
 .artwork-detail-open:hover img { transform: scale(var(--hover-zoom)); }
 .artwork-detail-open:hover > span, .artwork-detail-open:focus-visible > span { opacity: 1; transform: translate(-50%, -50%); }
@@ -483,7 +484,7 @@ button { font: inherit; }
 .viewer__slide { position: absolute; inset: 0; }
 .viewer__image { position: absolute; inset: 5%; transform-origin: center; transition: transform 80ms linear; }
 .viewer__image img { object-fit: contain; }
-.viewer__image.is-detail img { object-fit: cover; }
+.viewer__image.is-detail img { object-fit: contain; }
 .viewer__previous, .viewer__next { position: absolute; z-index: 3; top: 50%; display: grid; place-items: center; width: 3rem; height: 3rem; padding: 0; border: 1px solid var(--color-line); border-radius: 50%; background: color-mix(in srgb, var(--color-bg) 74%, transparent); color: inherit; cursor: pointer; transform: translateY(-50%); }
 .viewer__previous { left: 1.25rem; }
 .viewer__next { right: 1.25rem; }
@@ -492,7 +493,7 @@ button { font: inherit; }
 .viewer__rail.is-overflowing { justify-content: flex-start; }
 .viewer__rail::-webkit-scrollbar { display: none; }
 .viewer__rail > button { position: relative; flex: 0 0 5.5rem; height: 5.5rem; padding: 0; overflow: hidden; border: 1px solid transparent; background: var(--color-bg-soft); cursor: pointer; }
-.viewer__rail > button img { object-fit: cover; }
+.viewer__rail > button img { object-fit: contain; }
 .viewer__rail > button.is-active { border-color: var(--color-line-strong); }
 .viewer__rail-arrow--left { left: 0.25rem; }
 .viewer__rail-arrow--right { right: 10.25rem; }

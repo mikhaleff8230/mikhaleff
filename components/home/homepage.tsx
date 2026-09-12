@@ -11,7 +11,7 @@ export function Homepage({ locale, content }: { locale: string; content: Homepag
   return (
     <main id="top">
       <Hero locale={locale} hero={content.hero} />
-      <Statement locale={locale} content={content.statement} image={content.hero.image} />
+      <Statement locale={locale} content={content.statement} />
       <SelectedWorks locale={locale} content={content.selectedWorks} />
       <FeaturedSeries locale={locale} content={content.featuredSeries} />
       <Exhibitions locale={locale} content={content.exhibitions} />

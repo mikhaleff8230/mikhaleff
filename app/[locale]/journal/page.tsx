@@ -5,22 +5,22 @@ import { notFound } from "next/navigation";
 import { PageIntro } from "@/components/editorial/page-intro";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { getJournal } from "@/lib/content/repository";
+import { getArchivePage, getJournal } from "@/lib/content/repository";
 import { getInterfaceCopy } from "@/lib/i18n/copy";
 import { isSupportedLocale } from "@/lib/i18n/config";
 import { buildLocalizedMetadata } from "@/lib/seo/metadata";
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> { const { locale } = await params; return buildLocalizedMetadata({ locale, path: "/journal", title: "Journal", description: "Studio notes, essays and conversations from Alexander Mikhaleff." }); }
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> { const { locale } = await params; const page = await getArchivePage(locale, "journal"); return buildLocalizedMetadata({ locale, path: "/journal", title: page.seoTitle || page.title, description: page.seoDescription || page.subtitle, image: page.seoImageSrc }); }
 
 export default async function JournalPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isSupportedLocale(locale)) notFound();
   const labels = getInterfaceCopy(locale);
-  const journal = await getJournal(locale);
+  const [journal, page] = await Promise.all([getJournal(locale), getArchivePage(locale, "journal")]);
   return (
     <main className="editorial-page">
       <SiteHeader locale={locale} />
-      <PageIntro eyebrow="/ Journal" title="Journal" subtitle={"Studio notes, conversations\nand fragments of process."} />
+      <PageIntro eyebrow={page.eyebrow} title={page.title} subtitle={page.subtitle} />
       <section className="journal-index">
         {journal.map((entry, index) => (
           <article className="journal-card" data-featured={index === 0} key={entry.slug}>

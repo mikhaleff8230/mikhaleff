@@ -13,7 +13,9 @@
     "lint": "eslint . --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
     "studio": "sanity dev",
-    "studio:build": "sanity build"
+    "studio:build": "sanity build",
+    "sanity:schema": "sanity schemas extract --path schema.json --enforce-required-fields --force",
+    "sanity:typegen": "pnpm sanity:schema && sanity typegen generate"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",

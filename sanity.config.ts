@@ -10,4 +10,10 @@ export default defineConfig({
   dataset: process.env.SANITY_STUDIO_DATASET ?? "production",
   plugins: [structureTool({ structure }), visionTool()],
   schema: { types: schemaTypes },
+  document: {
+    newDocumentOptions: (previous) => previous.filter((item) => !["homepage", "about", "contact", "archivePages", "siteSettings"].includes(item.templateId)),
+    actions: (previous, context) => ["homepage", "about", "contact", "archivePages", "siteSettings"].includes(context.schemaType)
+      ? previous.filter(({ action }) => action && ["publish", "discardChanges", "restore"].includes(action))
+      : previous,
+  },
 });

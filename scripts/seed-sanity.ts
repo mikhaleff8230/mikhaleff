@@ -107,9 +107,6 @@ async function seed() {
     const detailImages = await Promise.all((artwork.detailImages ?? []).map(async (item, detailIndex) => ({
       ...await image(item.src, item.alt), _key: `detail-${detailIndex + 1}`,
     })));
-    const interiorImages = await Promise.all((artwork.interiorImages ?? []).map(async (item, interiorIndex) => ({
-      ...await image(item.src, item.alt), _key: `interior-${interiorIndex + 1}`,
-    })));
     const exhibitionSlug = exhibitionByArtwork.get(artwork.slug);
     const seriesId = artwork.series ? seriesIdByTitle.get(artwork.series) : undefined;
     await client.createOrReplace({
@@ -118,7 +115,7 @@ async function seed() {
       ...(seriesId ? {series: ref(seriesId)} : {}), medium: artwork.medium, category: "Painting",
       orientation: width === height ? "square" : width > height ? "landscape" : "portrait",
       dimensions: {_type: "dimensions", width, height, unit: "cm"}, availability: availability(artwork.status), showPrice: false,
-      mainImage, galleryImage: mainImage, detailImages, interiorImages,
+      mainImage, galleryImage: mainImage, detailImages,
       ...(artwork.video ? {
         videoPoster: await image(artwork.video.poster.src, artwork.video.poster.alt),
         videoEyebrow: localizedString(artwork.video.eyebrow ?? "The process"),
@@ -160,9 +157,10 @@ async function seed() {
   const heroArtworkId = documentId("artwork", "untitled-032");
   await client.createOrReplace({
     _id: "homepage", _type: "homepage", heroArtwork: ref(heroArtworkId),
+    heroImageOverride: await image(fallbackHomepage.hero.image.src, fallbackHomepage.hero.image.alt),
     heroEyebrow: localizedString(fallbackHomepage.hero.eyebrow), heroTitle: localizedString(fallbackHomepage.hero.title.join("\n")),
     heroSubtitle: localizedString(fallbackHomepage.hero.subtitle), statementText: localizedText(fallbackHomepage.statement.quote),
-    statementArtwork: ref(heroArtworkId), selectedWorks: fallbackHomepage.selectedWorks.items.map((item) => keyedRef(documentId("artwork", item.slug))),
+    statementImageOverride: await image(fallbackHomepage.statement.image.src, fallbackHomepage.statement.image.alt), selectedWorks: fallbackHomepage.selectedWorks.items.map((item) => keyedRef(documentId("artwork", item.slug))),
     featuredSeries: ref(documentId("series", fallbackHomepage.featuredSeries.slug)), exhibitionsMode: "latest",
   });
   await client.createOrReplace({

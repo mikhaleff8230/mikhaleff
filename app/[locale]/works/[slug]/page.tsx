@@ -37,7 +37,8 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
   const primaryImage = artwork.primaryImage ?? artwork.image;
   const galleryImages = [primaryImage, ...(artwork.detailImages ?? []), ...(artwork.textureImages ?? [])].filter((image, index, images) => images.findIndex((candidate) => `${candidate.src}|${candidate.position ?? ""}|${candidate.alt}` === `${image.src}|${image.position ?? ""}|${image.alt}`) === index);
   const detailPreviews = galleryImages.slice(1);
-  const spacePreview = artwork.interiorImages?.[0] ?? artwork.exhibition?.image ?? interiorScenes[0]?.image;
+  const preferredInteriorScene = interiorScenes.find((scene) => scene.slug === artwork.preferredInteriorSceneSlug) ?? interiorScenes[0];
+  const spacePreview = preferredInteriorScene?.image;
   const viewInSpaceAvailable = artwork.viewInSpaceEnabled !== false && interiorScenes.length > 0;
   const related = (artwork.relatedArtworkSlugs ?? [])
     .map((relatedSlug) => artworks.find((item) => item.slug === relatedSlug))

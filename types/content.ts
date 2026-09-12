@@ -46,7 +46,6 @@ export type ArtworkCard = {
   primaryImage?: ImageAsset;
   detailImages?: readonly ImageAsset[];
   textureImages?: readonly ImageAsset[];
-  interiorImages?: readonly ImageAsset[];
   artistComment?: string;
   relatedArtworkSlugs?: readonly string[];
   exhibition?: ArtworkExhibition;
@@ -108,8 +107,8 @@ export type HomepageContent = {
     image: ImageAsset;
     artwork: Omit<ArtworkCard, "slug" | "image">;
   };
-  statement: { eyebrow: string; quote: string; linkLabel: string };
-  selectedWorks: { eyebrow: string; linkLabel: string; items: readonly ArtworkCard[] };
+  statement: { eyebrow: string; quote: string; linkLabel: string; image: ImageAsset };
+  selectedWorks: { eyebrow: string; linkLabel: string; note: string; items: readonly ArtworkCard[] };
   featuredSeries: {
     eyebrow: string; title: string; years: string; description: string;
     linkLabel: string; slug: string; image: ImageAsset;
