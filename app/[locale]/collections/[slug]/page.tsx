@@ -5,13 +5,12 @@ import { notFound } from "next/navigation";
 import { CollectionWorks } from "@/components/editorial/collection-works";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { fallbackSeries } from "@/lib/content/fallback-editorial";
 import { getArtworks, getSeries } from "@/lib/content/repository";
 import { getInterfaceCopy } from "@/lib/i18n/copy";
 import { isSupportedLocale } from "@/lib/i18n/config";
 import { buildLocalizedMetadata } from "@/lib/seo/metadata";
 
-export function generateStaticParams() { return fallbackSeries.map(({ slug }) => ({ slug })); }
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;

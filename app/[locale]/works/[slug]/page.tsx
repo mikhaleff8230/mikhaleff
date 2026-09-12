@@ -11,14 +11,11 @@ import { ViewInSpaceSection } from "@/components/artwork/view-in-space-section";
 import { InquiryDialog } from "@/components/forms/inquiry-dialog";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { fallbackArtworks } from "@/lib/content/fallback-homepage";
 import { getArtworks, getInteriorScenes } from "@/lib/content/repository";
 import { isSupportedLocale } from "@/lib/i18n/config";
 import { buildLocalizedMetadata } from "@/lib/seo/metadata";
 
-export function generateStaticParams() {
-  return fallbackArtworks.map(({ slug }) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;

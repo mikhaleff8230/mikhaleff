@@ -3,7 +3,7 @@ import {getCliClient} from "sanity/cli";
 const client = getCliClient({apiVersion: "2026-09-01"}).withConfig({useCdn: false});
 
 const defaults = [
-  {key: "works", aliases: ["works", "artworks"], en: "Works", ru: "Работы", zh: "作品"},
+  {key: "works", aliases: ["works", "artworks"], en: "Works", ru: "Картины", zh: "作品"},
   {key: "collections", aliases: ["collections", "series"], en: "Collections", ru: "Коллекции", zh: "收藏"},
   {key: "exhibitions", aliases: ["exhibitions"], en: "Exhibitions", ru: "Выставки", zh: "展览"},
   {key: "about", aliases: ["about"], en: "About", ru: "Об авторе", zh: "关于"},

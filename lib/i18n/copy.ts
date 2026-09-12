@@ -5,7 +5,7 @@ const copy = {
     readArticle: "Read article", selectedWorks: "Selected works", allWorks: "All works",
   },
   ru: {
-    nav: ["Работы", "Коллекции", "Выставки", "Об авторе", "Журнал", "Контакты"],
+    nav: ["Картины", "Коллекции", "Выставки", "Об авторе", "Журнал", "Контакты"],
     collections: "Коллекции", back: "Назад", backToCollections: "Назад к коллекциям", viewSeries: "Смотреть коллекцию", viewCollection: "Смотреть коллекцию", featuredCollection: "Избранная коллекция", exploreCollection: "Открыть коллекцию", viewExhibition: "Открыть выставку",
     readArticle: "Читать", selectedWorks: "Избранные работы", allWorks: "Все работы",
   },

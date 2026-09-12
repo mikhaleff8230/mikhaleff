@@ -7,6 +7,7 @@ import { imageUrl } from "@/lib/sanity/image";
 import { fallbackInteriorScenes } from "@/lib/content/fallback-interior-scenes";
 
 const fetchOptions = { next: { revalidate: 3600, tags: ["sanity-content"] } };
+const siteSettingsFetchOptions = { cache: "no-store" as const };
 
 function image(src: string | undefined, alt: string | undefined, fallback: ImageAsset, width?: number, height?: number): ImageAsset {
   return src ? { src, alt: alt || fallback.alt, width, height } : fallback;
@@ -199,7 +200,7 @@ const fallbackSettings: SiteSettings = { siteTitle: "MIKHALEFF", email: "hello@m
 export async function getSiteSettings(locale: string): Promise<SiteSettings> {
   if (!sanityConfigured) return fallbackSettings;
   try {
-    const settings = await sanityClient.fetch<Partial<SiteSettings> | null>(siteSettingsQuery, { locale }, fetchOptions);
+    const settings = await sanityClient.fetch<Partial<SiteSettings> | null>(siteSettingsQuery, { locale }, siteSettingsFetchOptions);
     return settings ? { ...fallbackSettings, ...settings, navigation: settings.navigation || [] } : fallbackSettings;
   } catch { return fallbackSettings; }
 }
