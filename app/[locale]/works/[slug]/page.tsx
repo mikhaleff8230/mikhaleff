@@ -45,6 +45,10 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
     .slice(0, 5);
   const sectionLinks = ["#artwork", "#about-work", ...(detailPreviews.length ? ["#details"] : []), ...(artwork.video ? ["#film"] : []), ...(viewInSpaceAvailable ? ["#view-in-space"] : []), ...(related.length ? ["#related-works"] : [])]
     .map((href, index) => ({ href, label: String(index + 1).padStart(2, "0") }));
+  const displayedPrice = artwork.showPrice && typeof artwork.price === "number"
+    ? `${new Intl.NumberFormat(locale === "ru" ? "ru-RU" : locale === "zh" ? "zh-CN" : "en-US").format(artwork.price)} ${artwork.currency || "USD"}`
+    : null;
+  const priceLabel = locale === "ru" ? "Цена" : locale === "zh" ? "价格" : "Price";
   const jsonLdImage = primaryImage.src.startsWith("http") ? primaryImage.src : `https://mikhaleff.art${primaryImage.src}`;
   const jsonLd = { "@context": "https://schema.org", "@type": "VisualArtwork", name: artwork.title, dateCreated: artwork.year, artMedium: artwork.medium, width: artwork.dimensions, creator: { "@type": "Person", name: "Alexander Mikhaleff" }, image: jsonLdImage };
 
@@ -63,6 +67,7 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
               <div><dt>Medium</dt><dd>{artwork.medium}</dd></div>
               <div><dt>Dimensions</dt><dd>{artwork.dimensions}</dd></div>
               <div><dt>Status</dt><dd>{artwork.status}</dd></div>
+              {displayedPrice && <div><dt>{priceLabel}</dt><dd>{displayedPrice}</dd></div>}
             </dl>
             <InquiryDialog artwork={{ slug: artwork.slug, title: artwork.title }} />
             <Link className="collection-link" href={`/${locale}/contact`}>Add to collection <span>＋</span></Link>

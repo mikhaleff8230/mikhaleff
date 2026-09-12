@@ -59,6 +59,9 @@ export type ArtworkCard = {
   trueScaleEnabled?: boolean;
   series?: string;
   status?: "Available" | "Private collection" | "Sold";
+  showPrice?: boolean;
+  price?: number;
+  currency?: string;
   description?: string;
 };
 

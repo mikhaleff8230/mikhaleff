@@ -6,8 +6,8 @@ import { fallbackArtworks, fallbackHomepage } from "@/lib/content/fallback-homep
 import { imageUrl } from "@/lib/sanity/image";
 import { fallbackInteriorScenes } from "@/lib/content/fallback-interior-scenes";
 
-const fetchOptions = { next: { revalidate: 3600, tags: ["sanity-content"] } };
-const siteSettingsFetchOptions = { cache: "no-store" as const };
+const fetchOptions = { cache: "no-store" as const };
+const siteSettingsFetchOptions = fetchOptions;
 
 function image(src: string | undefined, alt: string | undefined, fallback: ImageAsset, width?: number, height?: number): ImageAsset {
   return src ? { src, alt: alt || fallback.alt, width, height } : fallback;

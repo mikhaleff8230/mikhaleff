@@ -83,6 +83,9 @@ export const artworksQuery = `*[_type == "artwork" && hideFromArchive != true] |
   },
   "series": ${localizedFrom("series", "title")},
   availability,
+  showPrice,
+  price,
+  currency,
   "description": coalesce(
     pt::text(${localized("description")}),
     ${localized("shortDescription")}
