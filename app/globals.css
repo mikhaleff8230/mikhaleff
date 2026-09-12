@@ -770,6 +770,8 @@ button { font: inherit; }
   .exhibitions-hero__note { grid-column: 1 / -1; justify-self: end; }
   .exhibition-banners__rail > a { flex-basis: calc((100% - (var(--banner-gap) * 2)) / 3); }
   .exhibition-overview { grid-template-columns: minmax(18rem, 0.8fr) minmax(24rem, 1.2fr); gap: 3rem; }
+  .about-landing__title nav { top: auto; bottom: clamp(2.5rem, 6vh, 5rem); gap: clamp(0.7rem, 1.5vh, 1rem); }
+  .about-landing__scroll { display: none; }
   .about-layout { grid-template-columns: 10rem minmax(0, 1fr); }
   .about-chapter--portrait { grid-template-columns: 1fr; }
   .about-chapter__image { min-height: 70svh; }
