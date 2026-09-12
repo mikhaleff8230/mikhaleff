@@ -76,7 +76,7 @@ export async function getArtworks(locale: string): Promise<readonly ArtworkCard[
   try {
     const entries = await sanityClient.fetch<ArtworksQueryResult>(artworksQuery, { locale }, fetchOptions) as unknown as RawArtwork[];
     return entries.length ? entries.map((entry) => {
-      const archiveImage = image(entry.imageSrc, entry.imageAlt, fallbackHomepage.hero.image);
+      const archiveImage = image(entry.imageSrc, entry.imageAlt, fallbackHomepage.hero.image, entry.primaryImageWidth, entry.primaryImageHeight);
       const videoPoster = configuredCrop(entry.video?.poster, 1920, 800);
       return {
         ...entry,

@@ -30,7 +30,7 @@ export const artwork = defineType({
     defineField({ name: "detailImages", title: "Detail Images", type: "array", group: "images", description: "Close-up details shown in the artwork slider and Details section.", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
     defineField({ name: "textureImages", title: "Texture Images", type: "array", group: "images", description: "Additional texture close-ups shown after Detail Images.", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
     defineField({ name: "interiorImages", title: "Legacy per-artwork interior images", type: "array", group: "images", hidden: true, readOnly: true, description: "Preserved for backward compatibility. View in Space now uses global Interior Scenes.", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
-    defineField({ name: "videoFile", title: "Video file", type: "file", group: "video", description: "Upload an MP4 or WebM file to enable playback.", options: { accept: "video/mp4,video/webm" } }),
+    defineField({ name: "videoFile", title: "Video file", type: "file", group: "video", description: "Upload an H.264 MP4 or WebM file for reliable browser playback. Large files should be web-optimized.", options: { accept: "video/mp4,video/webm" } }),
     defineField({ name: "videoExternalUrl", title: "Direct video URL", type: "url", group: "video", description: "Optional direct MP4/WebM URL. YouTube page links do not work in the native player." }),
     defineField({ name: "videoPoster", title: "Video poster", type: "imageWithMetadata", group: "video", description: "Cover image for the video. A poster alone does not provide playable video." }),
     defineField({ name: "videoEyebrow", title: "Video eyebrow", type: "localizedString", group: "video" }),

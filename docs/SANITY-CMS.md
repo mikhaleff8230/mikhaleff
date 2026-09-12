@@ -45,7 +45,7 @@ No frontend image filter changes an artwork between Dark and Light themes. The p
 
 Interior environments are global `interiorScene` documents. Edit them once under `ART → GLOBAL INTERIOR SCENES / VIEW IN SPACE`; every artwork uses the updated scenes. Each scene contains desktop and optional mobile image, physical wall size, normalized wall bounds, wall-color permission, ordering, and enabled state.
 
-An Artwork controls only whether View in Space is enabled, its preferred global scene, frame permission, and true-scale permission.
+An Artwork controls only whether View in Space is enabled, its preferred global scene, frame permission, and measured-scale permission. Free preview is the default at 52%. Visitors may select a local room photo; it is rendered through an in-memory blob URL and is never uploaded or saved.
 
 ## Homepage images
 

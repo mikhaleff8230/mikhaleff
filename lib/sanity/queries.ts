@@ -38,8 +38,8 @@ export const artworksQuery = defineQuery(`*[_type == "artwork" && hideFromArchiv
   "dimensions": select(defined(dimensions.width) && defined(dimensions.height) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),
   "widthCm": select(dimensions.unit == "in" => dimensions.width * 2.54, dimensions.unit == "mm" => dimensions.width / 10, dimensions.width),
   "heightCm": select(dimensions.unit == "in" => dimensions.height * 2.54, dimensions.unit == "mm" => dimensions.height / 10, dimensions.height),
-  "imageSrc": coalesce(galleryImage.asset->url, mainImage.asset->url),
-  "imageAlt": coalesce(${localized("galleryImage.alt")}, ${localized("mainImage.alt")}, ${localized("title")}),
+  "imageSrc": mainImage.asset->url,
+  "imageAlt": coalesce(${localized("mainImage.alt")}, ${localized("title")}),
   "primaryImageSrc": mainImage.asset->url,
   "primaryImageAlt": coalesce(${localized("mainImage.alt")}, ${localized("title")}),
   "primaryImageWidth": mainImage.asset->metadata.dimensions.width,
@@ -162,7 +162,8 @@ export const aboutQuery = defineQuery(`*[_type == "about"][0] {
 }`);
 
 export const siteSettingsQuery = defineQuery(`*[_type == "siteSettings"][0] {
-  siteTitle, email, instagram, telegram, whatsapp, youtube, facebook, location,
+  siteTitle, email, instagram, telegram, whatsapp, youtube, facebook,
+  "location": ${localized("location")},
   "siteDescription": ${localized("siteDescription")},
   "shareImage": defaultShareImage.asset->url,
   "navigation": navigationLabels[]{key, "label": select($locale == "ru" => label.ru, $locale == "zh" => label.zh, label.en)}
@@ -201,8 +202,8 @@ export const localizedHomepageQuery = defineQuery(`*[_type == "homepage"][0] {
   "selectedWorks": selectedWorks[]->{
     "slug": slug.current, "title": ${localized("title")}, "year": string(year), medium,
     "dimensions": select(defined(dimensions.width) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),
-    "imageSrc": coalesce(galleryImage.asset->url, mainImage.asset->url),
-    "imageAlt": coalesce(${localized("galleryImage.alt")}, ${localized("mainImage.alt")}, ${localized("title")})
+    "imageSrc": mainImage.asset->url,
+    "imageAlt": coalesce(${localized("mainImage.alt")}, ${localized("title")})
   },
   "featuredSeries": featuredSeries->{
     "slug": slug.current, "title": ${localized("title")}, "description": ${localized("introduction")}, startYear, endYear,

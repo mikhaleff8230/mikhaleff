@@ -94,7 +94,8 @@
       "location": {
         "type": "objectAttribute",
         "value": {
-          "type": "string"
+          "type": "inline",
+          "name": "localizedString"
         },
         "optional": true
       },

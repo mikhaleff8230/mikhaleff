@@ -109,7 +109,7 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
         <div className="archive-grid">
           {filtered.map((artwork, index) => (
             <button data-shape={index % 3} data-index={index} key={artwork.slug} onClick={() => openArtwork(artwork)}>
-              <span><Image src={artwork.image.src} alt={artwork.image.alt} fill sizes="(max-width: 767px) 100vw, 34vw" style={{ objectPosition: artwork.image.position }} /></span>
+              <span style={{ "--artwork-ratio": `${artwork.image.width || 4} / ${artwork.image.height || 5}` } as CSSProperties}><Image src={artwork.image.src} alt={artwork.image.alt} fill sizes="(max-width: 767px) 100vw, 34vw" style={{ objectPosition: artwork.image.position }} /></span>
               <strong>{artwork.title}</strong><small>{artwork.year}</small>
             </button>
           ))}
@@ -125,7 +125,7 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
               </li>
             ))}
           </ol>
-          <div className="archive-list-preview"><Image key={preview.slug} src={preview.image.src} alt="" fill sizes="30vw" style={{ objectPosition: preview.image.position }} /></div>
+          <div className="archive-list-preview" style={{ "--artwork-ratio": `${preview.image.width || 4} / ${preview.image.height || 5}` } as CSSProperties}><Image key={preview.slug} src={preview.image.src} alt="" fill sizes="30vw" style={{ objectPosition: preview.image.position }} /></div>
         </div>
       )}
       {filtered.length === 0 && <p className="archive-empty">No works match these filters.</p>}

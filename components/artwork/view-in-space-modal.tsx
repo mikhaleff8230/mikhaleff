@@ -36,22 +36,27 @@ function cover(image: HTMLImageElement | undefined, width: number, height: numbe
 
 export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: ArtworkCard; scenes: readonly InteriorScene[]; onClose: () => void }) {
   const initialScene = Math.max(0, scenes.findIndex((scene) => scene.slug === artwork.preferredInteriorSceneSlug));
-  const initialCanUseTrueScale = Boolean(artwork.widthCm && artwork.heightCm && scenes[initialScene]?.wallPhysicalWidthCm && artwork.trueScaleEnabled !== false);
   const [sceneIndex, setSceneIndex] = useState(initialScene);
   const [canvas, setCanvas] = useState({ width: 1280, height: 720 });
-  const canUseTrueScale = Boolean(artwork.widthCm && artwork.heightCm && scenes[sceneIndex]?.wallPhysicalWidthCm && artwork.trueScaleEnabled !== false);
-  const [trueScale, setTrueScale] = useState(initialCanUseTrueScale);
-  const [manualScale, setManualScale] = useState(0.38);
+  const [customSceneUrl, setCustomSceneUrl] = useState<string | null>(null);
+  const canUseTrueScale = Boolean(!customSceneUrl && artwork.widthCm && artwork.heightCm && scenes[sceneIndex]?.wallPhysicalWidthCm && artwork.trueScaleEnabled !== false);
+  const [trueScale, setTrueScale] = useState(false);
+  const [manualScale, setManualScale] = useState(0.52);
   const [frame, setFrame] = useState<"none" | "black">("none");
   const [wallColor, setWallColor] = useState("transparent");
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scene = scenes[sceneIndex] ?? scenes[0];
-  const sceneImage = useCanvasImage(scene.image.src);
+  const sceneImage = useCanvasImage(customSceneUrl || scene.image.src);
   const artSource = artwork.primaryImage ?? artwork.image;
   const artworkImage = useCanvasImage(artSource.src);
+
+  useEffect(() => () => {
+    if (customSceneUrl) URL.revokeObjectURL(customSceneUrl);
+  }, [customSceneUrl]);
 
   useEffect(() => {
     const target = canvasRef.current;
@@ -83,7 +88,10 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
     };
   }, [onClose]);
 
-  const wall = useMemo(() => ({ x: scene.wallBounds.x * canvas.width, y: scene.wallBounds.y * canvas.height, width: scene.wallBounds.width * canvas.width, height: scene.wallBounds.height * canvas.height }), [canvas, scene.wallBounds]);
+  const wall = useMemo(() => {
+    const bounds = customSceneUrl ? { x: 0.12, y: 0.1, width: 0.76, height: 0.8 } : scene.wallBounds;
+    return { x: bounds.x * canvas.width, y: bounds.y * canvas.height, width: bounds.width * canvas.width, height: bounds.height * canvas.height };
+  }, [canvas, customSceneUrl, scene.wallBounds]);
   const artRatio = artworkImage ? artworkImage.width / artworkImage.height : artwork.widthCm && artwork.heightCm ? artwork.widthCm / artwork.heightCm : 0.8;
   const trueWidth = canUseTrueScale && artwork.widthCm && scene.wallPhysicalWidthCm ? wall.width * (artwork.widthCm / scene.wallPhysicalWidthCm) : wall.width * manualScale;
   const artWidth = Math.min(wall.width * 0.88, Math.max(wall.width * 0.12, trueScale ? trueWidth : wall.width * manualScale));
@@ -94,20 +102,34 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
 
   const reset = useCallback(() => {
     setSceneIndex(initialScene);
-    setTrueScale(initialCanUseTrueScale);
-    setManualScale(0.38);
+    setTrueScale(false);
+    setManualScale(0.52);
     setFrame("none");
     setWallColor("transparent");
     setPosition(null);
-  }, [initialCanUseTrueScale, initialScene]);
+  }, [initialScene]);
 
   const chooseScene = (index: number) => {
     setSceneIndex(index);
+    setCustomSceneUrl(null);
     const nextCanUseTrueScale = Boolean(artwork.widthCm && artwork.heightCm && scenes[index]?.wallPhysicalWidthCm && artwork.trueScaleEnabled !== false);
     if (!nextCanUseTrueScale) setTrueScale(false);
     setPosition(null);
     setWallColor("transparent");
     trackEvent("view_in_space_scene_change", { artwork: artwork.slug, scene: scenes[index].slug });
+  };
+  const uploadRoom = (file: File | undefined) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setCustomSceneUrl(URL.createObjectURL(file));
+    setTrueScale(false);
+    setManualScale(0.52);
+    setPosition(null);
+    setWallColor("transparent");
+    trackEvent("view_in_space_custom_room", { artwork: artwork.slug });
+  };
+  const removeCustomRoom = () => {
+    setCustomSceneUrl(null);
+    setPosition(null);
   };
   const toggleTrueScale = () => {
     if (!canUseTrueScale) return;
@@ -158,7 +180,8 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
     </div>
     <aside className="space-controls">
       <div className="space-control"><span>Scene</span><div>{scenes.map((item, index) => <button className={index === sceneIndex ? "is-active" : undefined} type="button" onClick={() => chooseScene(index)} key={item.slug}>{item.title}</button>)}</div></div>
-      <div className="space-control"><span>True scale</span><button className={trueScale ? "is-active" : undefined} type="button" onClick={toggleTrueScale} disabled={!canUseTrueScale}>{canUseTrueScale ? (trueScale ? "On" : "Off") : "Unavailable"}</button></div>
+      <div className="space-control space-control--upload"><span>Your interior</span><div><button className={customSceneUrl ? "is-active" : undefined} type="button" onClick={() => fileInputRef.current?.click()}>{customSceneUrl ? "Replace photo" : "Upload photo"}</button>{customSceneUrl && <button type="button" onClick={removeCustomRoom}>Remove</button>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={(event) => { uploadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} /><small>Used only in this browser session. Nothing is uploaded or saved.</small></div>
+      <div className="space-control"><span>Measured scale</span><button className={trueScale ? "is-active" : undefined} type="button" onClick={toggleTrueScale} disabled={!canUseTrueScale}>{canUseTrueScale ? (trueScale ? "On" : "Off") : "Unavailable"}</button><small>Uses the artwork dimensions and the calibrated wall width. Free preview is the default.</small></div>
       <div className="space-control"><span>Size</span><div><button type="button" onClick={() => resize(-0.05)} disabled={trueScale}>−</button><small>{Math.round(manualScale * 100)}%</small><button type="button" onClick={() => resize(0.05)} disabled={trueScale}>＋</button></div></div>
       {artwork.frameAllowed !== false && <div className="space-control"><span>Frame</span><button className={frame !== "none" ? "is-active" : undefined} type="button" onClick={toggleFrame}>{frame === "none" ? "None" : "Black"}</button></div>}
       {scene.allowWallColor && <div className="space-control space-control--colors"><span>Wall</span><div>{wallColors.map((color) => <button className={wallColor === color.value ? "is-active" : undefined} type="button" aria-label={color.label} title={color.label} style={{ background: color.value }} onClick={() => setWallColor(color.value)} key={color.label} />)}</div></div>}

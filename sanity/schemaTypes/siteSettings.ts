@@ -11,7 +11,7 @@ export const siteSettings = defineType({
     defineField({ name: "whatsapp", title: "WhatsApp URL", type: "url" }),
     defineField({ name: "youtube", title: "YouTube URL", type: "url" }),
     defineField({ name: "facebook", title: "Facebook URL", type: "url" }),
-    defineField({ name: "location", type: "string", initialValue: "Europe" }),
+    defineField({ name: "location", title: "Footer location / country", type: "localizedString", description: "Single global location shown in the footer for every language." }),
     defineField({ name: "defaultShareImage", type: "imageWithMetadata" }),
     defineField({
       name: "navigationLabels", title: "Navigation translations", type: "array",
