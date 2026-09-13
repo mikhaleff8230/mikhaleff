@@ -47,7 +47,7 @@ Sanity preview uses `/api/draft?secret=...&redirect=/en`; disable it at `/api/di
 
 ## Contact delivery
 
-In development the form validates submissions and returns a preview success state without sending mail. For production, configure `INQUIRY_WEBHOOK_URL` with an HTTPS endpoint that accepts the validated JSON payload. Without it, production requests intentionally return a clear configuration error and direct visitors to email.
+The validated contact form is delivered server-side over SMTP. Configure `MAIL_HOST`, `MAIL_PORT`, `MAIL_ENCRYPTION`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `INQUIRY_TO_EMAIL`. Credentials remain server-only; visitor email is used as `Reply-To`. The endpoint includes rate limiting, a honeypot, validation, and escaped HTML output.
 
 ## Theme and accessibility
 

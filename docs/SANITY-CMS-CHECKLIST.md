@@ -18,4 +18,4 @@ All listed pages were checked in EN/RU/ZH.
 | Header/footer/global settings | [x] | [x] | [x] | [x] | [x] | [x] | [x] |
 | Legacy Series redirects | N/A | N/A | N/A | [x] | N/A | [x] | [x] |
 
-External delivery/tracking are operational integrations, not CMS coverage. Gmail SMTP submission and Yandex Webvisor remain disabled until the owner explicitly confirms the corresponding transmission of visitor/form data.
+External delivery/tracking are operational integrations, not CMS coverage. The owner explicitly approved Gmail SMTP form delivery and Yandex Webvisor; both integrations are enabled in the application and must be verified after each production deployment.
