@@ -723,6 +723,12 @@ button { font: inherit; }
 .contact-form__subject span { color: var(--color-muted); }
 .contact-form__status { min-height: 1rem; margin: 0; color: var(--color-muted); font-size: 0.65rem; line-height: 1.5; }
 .contact-form__status--error { color: var(--color-error); }
+.contact-success { position: fixed; z-index: 300; inset: 0; display: grid; place-items: center; padding: 1.25rem; background: color-mix(in srgb, #000 72%, transparent); backdrop-filter: blur(10px); }
+.contact-success__dialog { position: relative; display: flex; flex-direction: column; justify-content: center; width: min(92vw, 46rem); min-height: min(70vh, 32rem); padding: clamp(2rem, 6vw, 5rem); border: 1px solid var(--color-line-strong); background: var(--color-bg-elevated); color: var(--color-fg); text-align: center; box-shadow: 0 2rem 7rem rgb(0 0 0 / 45%); }
+.contact-success__dialog h2 { margin: 1.4rem 0; font-family: var(--font-display); font-size: clamp(4rem, 9vw, 8rem); font-weight: 400; line-height: 0.85; letter-spacing: -0.055em; }
+.contact-success__dialog > p:not(.eyebrow) { max-width: 30rem; margin: 0 auto; color: var(--color-muted); font-family: var(--font-body-serif); font-size: clamp(1rem, 1.5vw, 1.3rem); line-height: 1.5; }
+.contact-success__close { position: absolute; top: 1rem; right: 1rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--color-line-strong); border-radius: 50%; background: transparent; color: inherit; font-size: 1.5rem; cursor: pointer; }
+.contact-success__action { align-self: center; min-width: 12rem; margin-top: 2.5rem; padding: 1rem 1.5rem; border: 1px solid var(--color-fg-strong); background: var(--color-fg-strong); color: var(--color-bg); font-size: 0.65rem; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
 .contact-layout__form aside { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-line); }
 .contact-layout__form aside div { display: grid; gap: 0.4rem; font-size: 0.65rem; }
 .contact-layout__form aside span { color: var(--color-muted); font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase; }
