@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
+
 import { trackEvent } from "@/lib/analytics/events";
 import { getInterfaceCopy } from "@/lib/i18n/copy";
 
@@ -35,7 +35,7 @@ export function ContactForm({ artwork, compact = false, locale = "en", heading }
     <label className="contact-form__consent"><input name="consent" type="checkbox" value="true" required /><span>{labels.consent}</span></label>
     <button type="submit" disabled={state === "sending" || state === "success"}>{state === "sending" ? labels.sending : state === "success" ? labels.sent : labels.send}<span>→</span></button>
     <p className={`contact-form__status contact-form__status--${state}`} aria-live="polite">{message}</p>
-  </form>{state === "success" && createPortal(
+  </form>{state === "success" && (
     <div className="contact-success" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeSuccess(); }}>
       <section className="contact-success__dialog" role="dialog" aria-modal="true" aria-labelledby="contact-success-title">
         <button className="contact-success__close" type="button" aria-label={labels.close} onClick={closeSuccess}>×</button>
@@ -44,6 +44,6 @@ export function ContactForm({ artwork, compact = false, locale = "en", heading }
         <p>{labels.sentDetail}</p>
         <button className="contact-success__action" type="button" autoFocus onClick={closeSuccess}>{labels.close}</button>
       </section>
-    </div>, document.body,
+    </div>
   )}</>;
 }
