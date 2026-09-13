@@ -18,6 +18,6 @@ test("successful contact submission opens a prominent confirmation dialog", asyn
   const dialog = page.getByRole("dialog", { name: "Message sent" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("Your message has been delivered successfully.")).toBeVisible();
-  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await dialog.locator(".contact-success__action").click();
   await expect(dialog).toBeHidden();
 });
