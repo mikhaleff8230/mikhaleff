@@ -2,11 +2,15 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { ArtworkVideo } from "@/types/content";
 
 export function ArtworkVideoBlock({ video }: { video: ArtworkVideo }) {
   const element = useRef<HTMLVideoElement>(null);
   const [started, setStarted] = useState(false);
+  const [ratio, setRatio] = useState(() => video.poster.width && video.poster.height
+    ? `${video.poster.width} / ${video.poster.height}`
+    : "16 / 9");
 
   const play = async () => {
     if (!video.src || !element.current) return;
@@ -15,8 +19,8 @@ export function ArtworkVideoBlock({ video }: { video: ArtworkVideo }) {
   };
 
   return (
-    <div className={`artwork-video${started ? " is-playing" : ""}`}>
-      {video.src ? <video ref={element} src={video.src} poster={started ? undefined : video.poster.src} controls={started} playsInline preload="metadata" onPlay={() => setStarted(true)} onEnded={() => setStarted(false)} /> : <Image src={video.poster.src} alt={video.poster.alt} fill sizes="100vw" style={{ objectPosition: video.poster.position }} />}
+    <div className={`artwork-video${started ? " is-playing" : ""}`} style={{ "--video-ratio": ratio } as CSSProperties}>
+      {video.src ? <video ref={element} src={video.src} poster={started ? undefined : video.poster.src} controls={started} playsInline preload="metadata" onLoadedMetadata={(event) => { const { videoWidth, videoHeight } = event.currentTarget; if (videoWidth && videoHeight) setRatio(`${videoWidth} / ${videoHeight}`); }} onPlay={() => setStarted(true)} onEnded={() => setStarted(false)} /> : <Image src={video.poster.src} alt={video.poster.alt} fill sizes="100vw" style={{ objectPosition: video.poster.position }} />}
       <div className="artwork-video__veil" />
       <div className="artwork-video__copy">
         {video.eyebrow && <p className="eyebrow">{video.eyebrow}</p>}

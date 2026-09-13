@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent } from "react";
 import type { ArtworkCard } from "@/types/content";
 import { trackEvent } from "@/lib/analytics/events";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 
 type ViewMode = "exhibition" | "grid" | "list";
 type Placement = { top: number; left: number; width: number; depth: number };
@@ -20,6 +21,7 @@ const placements: Placement[] = [
 
 export function WorksArchive({ locale, artworks }: { locale: string; artworks: readonly ArtworkCard[] }) {
   const [mode, setMode] = useState<ViewMode>("exhibition");
+  const labels = getInterfaceCopy(locale).works;
   const [preview, setPreview] = useState<ArtworkCard>(artworks[0]);
   const [year, setYear] = useState("all");
   const [medium, setMedium] = useState("all");
@@ -29,13 +31,12 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
   const years = [...new Set(artworks.map((artwork) => artwork.year))].sort().reverse();
   const mediums = [...new Set(artworks.map((artwork) => artwork.medium))].sort();
   const filtered = artworks.filter((artwork) => (year === "all" || artwork.year === year) && (medium === "all" || artwork.medium === medium));
+  const exhibitionWorks = filtered.filter((artwork) => artwork.exhibitionFeatured);
 
   useEffect(() => {
     const saved = sessionStorage.getItem("mikhaleff-works-mode") as ViewMode | null;
-    const scroll = Number(sessionStorage.getItem("mikhaleff-exhibition-scroll"));
     requestAnimationFrame(() => {
       if (saved && ["exhibition", "grid", "list"].includes(saved)) setMode(saved);
-      if (scroll > 0) window.scrollTo({ top: scroll });
     });
   }, []);
 
@@ -48,7 +49,7 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
       });
     }, stageRef);
     return () => context.revert();
-  }, [mode, filtered.length]);
+  }, [mode, exhibitionWorks.length]);
 
   const chooseMode = (nextMode: ViewMode) => {
     setMode(nextMode);
@@ -81,16 +82,16 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
     <section className="works-archive">
       <div className="works-toolbar" role="group" aria-label="Artwork display mode">
         <div className="works-filters" aria-label="Filter artworks">
-          <button type="button" aria-pressed={year === "all" && medium === "all"} onClick={() => { setYear("all"); setMedium("all"); trackEvent("filter_works", { filter: "all" }); }}>All</button>
+          <button type="button" aria-pressed={year === "all" && medium === "all"} onClick={() => { setYear("all"); setMedium("all"); trackEvent("filter_works", { filter: "all" }); }}>{labels.all}</button>
           <span className="works-filters__group">{years.map((item) => <button type="button" aria-pressed={year === item} onClick={() => { setYear(item); setMedium("all"); trackEvent("filter_works", { year: item }); }} key={item}>{item}</button>)}</span>
           <i aria-hidden="true" />
           <span className="works-filters__group">{mediums.map((item) => <button type="button" aria-pressed={medium === item} onClick={() => { setMedium(item); setYear("all"); trackEvent("filter_works", { medium: item }); }} key={item}>{item}</button>)}</span>
         </div>
-        <div className="works-modes">{(["exhibition", "grid", "list"] as const).map((item) => <button key={item} onClick={() => chooseMode(item)} aria-pressed={mode === item}>{item}</button>)}</div>
+        <div className="works-modes">{(["exhibition", "grid", "list"] as const).map((item) => <button key={item} onClick={() => chooseMode(item)} aria-pressed={mode === item}>{labels[item]}</button>)}</div>
       </div>
 
       {mode === "exhibition" && (
-        <div className="exhibition-stage" ref={stageRef} onPointerMove={moveStage} onPointerLeave={() => gsap.to(stageRef.current?.querySelectorAll(".exhibition-work") ?? [], { x: 0, y: 0, duration: 1.4 })}>
+        <div className="exhibition-stage" style={{ "--exhibition-height": `${Math.max(230, Math.ceil(exhibitionWorks.length / placements.length) * 215)}svh` } as CSSProperties} ref={stageRef} onPointerMove={moveStage} onPointerLeave={() => gsap.to(stageRef.current?.querySelectorAll(".exhibition-work") ?? [], { x: 0, y: 0, duration: 1.4 })}>
           <span className="exhibition-cursor" ref={cursorRef} aria-hidden="true">View</span>
           {filtered.map((artwork, index) => {
             const placement = placements[index % placements.length];
@@ -128,7 +129,7 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
           <div className="archive-list-preview" style={{ "--artwork-ratio": `${preview.image.width || 4} / ${preview.image.height || 5}` } as CSSProperties}><Image key={preview.slug} src={preview.image.src} alt="" fill sizes="30vw" style={{ objectPosition: preview.image.position }} /></div>
         </div>
       )}
-      {filtered.length === 0 && <p className="archive-empty">No works match these filters.</p>}
+      {filtered.length === 0 && <p className="archive-empty">{labels.empty}</p>}
     </section>
   );
 }

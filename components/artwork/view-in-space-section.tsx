@@ -3,13 +3,16 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ArtworkCard, InteriorScene } from "@/types/content";
 import { trackEvent } from "@/lib/analytics/events";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 
 const ViewInSpaceModal = dynamic(() => import("@/components/artwork/view-in-space-modal").then((module) => module.ViewInSpaceModal), { ssr: false });
 
-export function ViewInSpaceSection({ artwork, scenes }: { artwork: ArtworkCard; scenes: readonly InteriorScene[] }) {
+export function ViewInSpaceSection({ artwork, scenes, locale }: { artwork: ArtworkCard; scenes: readonly InteriorScene[]; locale: string }) {
   const [open, setOpen] = useState(false);
+  const labels = getInterfaceCopy(locale).space;
   const trigger = useRef<HTMLButtonElement>(null);
   const [mobile, setMobile] = useState(false);
   const scene = useMemo(() => scenes.find((item) => item.slug === artwork.preferredInteriorSceneSlug) ?? scenes[0], [artwork.preferredInteriorSceneSlug, scenes]);
@@ -37,14 +40,14 @@ export function ViewInSpaceSection({ artwork, scenes }: { artwork: ArtworkCard; 
   };
 
   return <section className="view-in-space-section" id="view-in-space" data-scroll-scene="view-in-space">
-    <div className="artwork-section-label"><span>View in space</span></div>
+    <div className="artwork-section-label"><span>{labels.title}</span></div>
     <button className="view-in-space-preview" type="button" onClick={launch} ref={trigger} aria-label={`Open interactive view in space for ${artwork.title}`}>
       <Image src={sceneImage.src} alt={sceneImage.alt} fill sizes="82vw" style={{ objectPosition: sceneImage.position }} />
       <span className="view-in-space-preview__art" style={{ left: `${(scene.wallBounds.x + scene.wallBounds.width * 0.5) * 100}%`, top: `${(scene.wallBounds.y + scene.wallBounds.height * 0.46) * 100}%`, width: `${Math.min(34, scene.wallBounds.width * 56)}%`, aspectRatio: artwork.widthCm && artwork.heightCm ? `${artwork.widthCm} / ${artwork.heightCm}` : undefined }}><Image src={artworkImage.src} alt="" fill sizes="30vw" /></span>
       <span className="view-in-space-preview__veil" />
-      <span className="view-in-space-preview__cta">Enter space <b>→</b></span>
+      <span className="view-in-space-preview__cta">{labels.enter} <b>→</b></span>
     </button>
-    <div className="view-in-space-section__copy"><strong>{artwork.title}</strong><span>{artwork.dimensions}</span><p>Move the work, compare interiors and preview its physical scale on the wall.</p><button type="button" onClick={launch}>Open interactive view <b>→</b></button></div>
-    {open && <ViewInSpaceModal artwork={artwork} scenes={scenes} onClose={close} />}
+    <div className="view-in-space-section__copy"><strong>{artwork.title}</strong><span>{artwork.dimensions}</span><p>{labels.description}</p><button type="button" onClick={launch}>{labels.open} <b>→</b></button></div>
+    {open && createPortal(<ViewInSpaceModal artwork={artwork} scenes={scenes} locale={locale} onClose={close} />, document.body)}
   </section>;
 }

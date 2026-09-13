@@ -4,6 +4,12 @@ export const about = defineType({
   name: "about", title: "About", type: "document",
   fields: [
     defineField({ name: "artistName", type: "string", validation: (rule) => rule.required() }),
+    defineField({ name: "pageEyebrow", title: "Page eyebrow", type: "localizedString" }),
+    defineField({ name: "pageTitle", title: "Page title", type: "localizedString" }),
+    defineField({ name: "introduction", title: "Introductory text", type: "localizedText" }),
+    defineField({ name: "readBiographyLabel", title: "Biography link label", type: "localizedString" }),
+    defineField({ name: "studioTitle", title: "Studio section title", type: "localizedString" }),
+    defineField({ name: "studioText", title: "Studio section text", type: "localizedText" }),
     defineField({ name: "portrait", type: "imageWithMetadata" }),
     defineField({ name: "studioImages", type: "array", of: [defineArrayMember({ type: "imageWithMetadata" })] }),
     defineField({ name: "shortBio", type: "localizedText" }), defineField({ name: "fullBiography", type: "localizedPortableText" }),

@@ -32,7 +32,7 @@ export const homepage = defineType({
     defineField({ name: "contactHeading", type: "localizedString", group: "content" }),
     defineField({ name: "contactEyebrow", type: "localizedText", group: "content" }),
     defineField({ name: "contactLinkLabel", type: "localizedString", group: "content" }),
-    defineField({ name: "additionalSections", type: "array", group: "content", of: [defineArrayMember({ type: "homepageSection" })] }),
+    defineField({ name: "additionalSections", title: "Legacy additional sections", type: "array", group: "content", hidden: true, readOnly: true, of: [defineArrayMember({ type: "homepageSection" })] }),
     defineField({ name: "seo", type: "seoFields", group: "seo" }),
   ],
   preview: { prepare: () => ({ title: "Homepage" }) },

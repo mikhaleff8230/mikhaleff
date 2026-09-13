@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
   const collection = (await getSeries(locale)).find((item) => item.slug === slug);
-  return collection ? buildLocalizedMetadata({ locale, path: `/collections/${slug}`, title: collection.title, description: collection.description, image: collection.cover.src }) : {};
+  return collection ? buildLocalizedMetadata({ locale, path: `/collections/${slug}`, title: collection.seoTitle || collection.title, description: collection.seoDescription || collection.description, image: collection.seoImageSrc || collection.cover.src }) : {};
 }
 
 export default async function CollectionDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -39,7 +39,7 @@ export default async function CollectionDetailPage({ params }: { params: Promise
           <h1>{collection.title}</h1>
           <p className="collection-overview__dates">{collection.years}</p>
           <p className="collection-overview__lead">{collection.description}</p>
-          <a className="text-link" href="#collection-works">Explore works <span>→</span></a>
+          <a className="text-link" href="#collection-works">{labels.works.explore} <span>→</span></a>
         </div>
         <div className="collection-overview__media"><Image src={collection.cover.src} alt={collection.cover.alt} fill priority sizes="(max-width: 767px) 100vw, 54vw" style={{ objectPosition: collection.cover.position }} /></div>
       </section>
@@ -47,7 +47,7 @@ export default async function CollectionDetailPage({ params }: { params: Promise
       <Link className="next-collection-banner" href={`/${locale}/collections/${next.slug}`}>
         <Image src={next.cover.src} alt="" fill sizes="100vw" style={{ objectPosition: next.cover.position }} />
         <span className="next-collection-banner__veil" />
-        <span className="next-collection-banner__title"><small>Next collection</small><strong>{next.title}</strong></span>
+        <span className="next-collection-banner__title"><small>{labels.works.nextCollection}</small><strong>{next.title}</strong></span>
         <span className="next-collection-banner__copy"><small>{String((collectionIndex + 1) % collections.length + 1).padStart(2, "0")} / {String(collections.length).padStart(2, "0")}</small><span>{next.description}</span><b>{labels.viewCollection} →</b></span>
       </Link>
       <SiteFooter locale={locale} />

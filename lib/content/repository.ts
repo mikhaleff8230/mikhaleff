@@ -1,10 +1,9 @@
-import type { ArtworksQueryResult, InteriorScenesQueryResult, SeriesQueryResult, ExhibitionsQueryResult, JournalQueryResult, AboutQueryResult, SiteSettingsQueryResult, LocalizedHomepageQueryResult, ArchivePagesQueryResult } from "@/sanity.types";
-import type { ArtworkCard, ArtworkExhibition, ArtworkVideo, ExhibitionEntry, HomepageContent, InteriorScene, JournalEntry, SeriesEntry, ImageAsset } from "@/types/content";
+import type { ArtworksQueryResult, InteriorScenesQueryResult, SeriesQueryResult, ExhibitionsQueryResult, JournalQueryResult, AboutQueryResult, SiteSettingsQueryResult, LocalizedHomepageQueryResult, ArchivePagesQueryResult, ContactPageQueryResult } from "@/sanity.types";
+import type { ArtworkCard, ArtworkExhibition, ArtworkVideo, ExhibitionEntry, HomepageContent, InteriorScene, JournalEntry, SeriesEntry, ImageAsset, ContactPageContent } from "@/types/content";
 import { sanityClient, sanityConfigured } from "@/lib/sanity/client";
-import { aboutQuery, artworksQuery, exhibitionsQuery, interiorScenesQuery, journalQuery, localizedHomepageQuery, seriesQuery, siteSettingsQuery, archivePagesQuery } from "@/lib/sanity/queries";
+import { aboutQuery, artworksQuery, exhibitionsQuery, interiorScenesQuery, journalQuery, localizedHomepageQuery, seriesQuery, siteSettingsQuery, archivePagesQuery, contactPageQuery } from "@/lib/sanity/queries";
 import { aboutContent, fallbackExhibitions, fallbackJournal, fallbackSeries } from "@/lib/content/fallback-editorial";
 import { fallbackArtworks, fallbackHomepage } from "@/lib/content/fallback-homepage";
-import { imageUrl } from "@/lib/sanity/image";
 import { fallbackInteriorScenes } from "@/lib/content/fallback-interior-scenes";
 
 const fetchOptions = { cache: "no-store" as const };
@@ -14,10 +13,14 @@ function image(src: string | undefined, alt: string | undefined, fallback: Image
   return src ? { src, alt: alt || fallback.alt, width, height } : fallback;
 }
 
-function status(value?: string): ArtworkCard["status"] {
-  if (value === "private-collection" || value === "museum") return "Private collection";
-  if (value === "sold" || value === "unavailable") return "Sold";
-  return "Available";
+function status(value: string | undefined, locale: string): ArtworkCard["status"] {
+  const key = value === "private-collection" || value === "museum" ? "private" : value === "sold" || value === "unavailable" ? "sold" : value === "reserved" ? "reserved" : "available";
+  const labels = {
+    en: { available: "Available", reserved: "Reserved", private: "Private collection", sold: "Sold" },
+    ru: { available: "Доступна", reserved: "Зарезервирована", private: "Частная коллекция", sold: "Продана" },
+    zh: { available: "可购", reserved: "已预订", private: "私人收藏", sold: "已售" },
+  } as const;
+  return (labels[locale as keyof typeof labels] || labels.en)[key] as ArtworkCard["status"];
 }
 
 type RawArtworkSummary = Omit<ArtworkCard, "image" | "primaryImage" | "detailImages" | "textureImages" | "exhibition" | "video" | "status"> & {
@@ -48,12 +51,6 @@ type RawSanityImage = {
   height?: number;
 };
 
-function configuredCrop(source: RawSanityImage | undefined, width: number, height: number): ImageAsset | undefined {
-  if (!source?.asset?._ref) return undefined;
-  const src = imageUrl(source as Parameters<typeof imageUrl>[0]).width(width).height(height).fit("crop").url();
-  return { src, alt: source.alt || "Artwork image", width, height };
-}
-
 function configuredImage(source: RawSanityImage | undefined): ImageAsset | undefined {
   if (!source?.src) return undefined;
   return {
@@ -77,10 +74,10 @@ export async function getArtworks(locale: string): Promise<readonly ArtworkCard[
     const entries = await sanityClient.fetch<ArtworksQueryResult>(artworksQuery, { locale }, fetchOptions) as unknown as RawArtwork[];
     return entries.length ? entries.map((entry) => {
       const archiveImage = image(entry.imageSrc, entry.imageAlt, fallbackHomepage.hero.image, entry.primaryImageWidth, entry.primaryImageHeight);
-      const videoPoster = configuredCrop(entry.video?.poster, 1920, 800);
+      const videoPoster = configuredImage(entry.video?.poster);
       return {
         ...entry,
-        status: status(entry.availability),
+        status: status(entry.availability, locale),
         image: archiveImage,
         primaryImage: image(
           entry.primaryImageSrc,
@@ -93,9 +90,9 @@ export async function getArtworks(locale: string): Promise<readonly ArtworkCard[
         textureImages: configuredImages(entry.textureImages),
         exhibition: entry.exhibition ? {
           ...entry.exhibition,
-          image: configuredCrop(entry.exhibition.image, 1920, 1080),
+          image: configuredImage(entry.exhibition.image),
         } : undefined,
-        video: entry.video && videoPoster ? { ...entry.video, poster: videoPoster } : undefined,
+        video: entry.video ? { ...entry.video, poster: videoPoster || archiveImage } : undefined,
       };
     }) : fallbackArtworks;
   } catch (error) {
@@ -146,47 +143,107 @@ export async function getExhibitions(locale: string): Promise<readonly Exhibitio
   if (!sanityConfigured) return fallbackExhibitions;
   try {
     const entries = await sanityClient.fetch<ExhibitionsQueryResult>(exhibitionsQuery, { locale }, fetchOptions) as unknown as RawExhibition[];
-    return entries.length ? entries.map((entry) => ({ ...entry, year: entry.startDate?.slice(0, 4) || "", dates: [entry.startDate, entry.endDate].filter(Boolean).join(" — "), format: entry.type === "solo" ? "Solo exhibition" : "Group exhibition", image: image(entry.imageSrc, entry.imageAlt, fallbackExhibitions[0].image) })) : fallbackExhibitions;
+    const formatLabels = locale === "ru" ? { solo: "Персональная выставка", group: "Групповая выставка" } : locale === "zh" ? { solo: "个展", group: "群展" } : { solo: "Solo exhibition", group: "Group exhibition" };
+    return entries.length ? entries.map((entry) => ({ ...entry, year: entry.startDate?.slice(0, 4) || "", dates: [entry.startDate, entry.endDate].filter(Boolean).join(" — "), format: entry.type === "solo" ? formatLabels.solo : formatLabels.group, image: image(entry.imageSrc, entry.imageAlt, fallbackExhibitions[0].image) })) : fallbackExhibitions;
   } catch { return fallbackExhibitions; }
 }
 
-type RawJournal = Omit<JournalEntry, "image" | "date" | "category"> & { date?: string; category?: string; imageSrc?: string; imageAlt?: string };
+type RawJournal = Omit<JournalEntry, "image" | "date" | "category" | "body"> & { date?: string; category?: string; bodyText?: string; imageSrc?: string; imageAlt?: string };
 
 export async function getJournal(locale: string): Promise<readonly JournalEntry[]> {
   if (!sanityConfigured) return fallbackJournal;
   try {
     const entries = await sanityClient.fetch<JournalQueryResult>(journalQuery, { locale }, fetchOptions) as unknown as RawJournal[];
-    const categories = new Set<JournalEntry["category"]>(["Studio note", "Conversation", "Essay", "News"]);
-    return entries.length ? entries.map((entry) => ({ ...entry, category: categories.has(entry.category as JournalEntry["category"]) ? entry.category as JournalEntry["category"] : "News", date: entry.date ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(entry.date)) : "", body: entry.body?.filter(Boolean) || [], image: image(entry.imageSrc, entry.imageAlt, fallbackJournal[0].image) })) : fallbackJournal;
+    const categoryLabels = {
+      en: { "Studio note": "Studio note", Conversation: "Conversation", Essay: "Essay", News: "News" },
+      ru: { "Studio note": "Из студии", Conversation: "Разговор", Essay: "Эссе", News: "Новости" },
+      zh: { "Studio note": "工作室札记", Conversation: "对话", Essay: "随笔", News: "新闻" },
+    } as const;
+    const categoryCopy = categoryLabels[locale as keyof typeof categoryLabels] || categoryLabels.en;
+    return entries.length ? entries.map((entry) => {
+      const key = entry.category && entry.category in categoryCopy ? entry.category as keyof typeof categoryCopy : "News";
+      return { ...entry, category: categoryCopy[key], date: entry.date ? new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(new Date(entry.date)) : "", body: entry.bodyText?.split(/\n{2,}/).filter(Boolean) || [], image: image(entry.imageSrc, entry.imageAlt, fallbackJournal[0].image) };
+    }) : fallbackJournal;
   } catch { return fallbackJournal; }
 }
 
-type RawAbout = { quote?: string; shortBio?: string; biographyText?: string; statementText?: string; portraitSrc?: string; portraitAlt?: string; studioSrc?: string; studioAlt?: string };
+type RawAbout = {
+  artistName?: string; pageEyebrow?: string; pageTitle?: string; introduction?: string; readBiographyLabel?: string;
+  studioTitle?: string; studioText?: string; quote?: string; shortBio?: string; biographyText?: string;
+  statementText?: string; cvText?: string; pressText?: string; portraitSrc?: string; portraitAlt?: string;
+  studioSrc?: string; studioAlt?: string; seoTitle?: string; seoDescription?: string; seoImageSrc?: string;
+};
 
 export async function getAbout(locale: string) {
   const fallbackPortrait = { src: "/studio/alexander-mikhaleff-studio.png", alt: "Alexander Mikhaleff in his studio" };
-  if (!sanityConfigured) return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait };
+  const defaults = {
+    ...aboutContent,
+    artistName: "Alexander Mikhaleff",
+    pageEyebrow: "/ About",
+    pageTitle: "About\nthe Artist",
+    introduction: "My work is a continuous exploration of the space between the visible and the invisible. Through abstraction I seek to express states, emotions and structures that exist beyond rational perception.",
+    readBiographyLabel: "Read full biography",
+    studioTitle: "Between matter\nand memory",
+    studioText: "The studio is treated as a field of attention: a place where gesture, accident and revision are allowed to remain visible.",
+    cvItems: aboutContent.cv.map(([year, event]) => `${year} — ${event}`),
+    pressItems: aboutContent.press.map(([publication, title, year]) => `${year} — ${publication}: ${title}`),
+    portrait: fallbackPortrait,
+    studio: fallbackPortrait,
+    seoTitle: undefined as string | undefined,
+    seoDescription: undefined as string | undefined,
+    seoImageSrc: undefined as string | undefined,
+  };
+  if (!sanityConfigured) return defaults;
   try {
     const entry = await sanityClient.fetch<AboutQueryResult>(aboutQuery, { locale }, fetchOptions) as unknown as RawAbout | null;
-    if (!entry) return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait };
+    if (!entry) return defaults;
     const biography = entry.biographyText?.split(/\n{2,}/).filter(Boolean) || (entry.shortBio ? [entry.shortBio] : []);
     const statement = entry.statementText?.split(/\n{2,}/).filter(Boolean) || [];
-    return { ...aboutContent, quote: entry.quote || aboutContent.quote, biography: biography.length ? biography : aboutContent.biography, statement: statement.length ? statement : aboutContent.statement, portrait: image(entry.portraitSrc, entry.portraitAlt, fallbackPortrait), studio: image(entry.studioSrc, entry.studioAlt, fallbackPortrait) };
-  } catch { return { ...aboutContent, portrait: fallbackPortrait, studio: fallbackPortrait }; }
+    const cvItems = entry.cvText?.split(/\n+/).map((item) => item.trim()).filter(Boolean) || [];
+    const pressItems = entry.pressText?.split(/\n+/).map((item) => item.trim()).filter(Boolean) || [];
+    return {
+      ...defaults,
+      artistName: entry.artistName || defaults.artistName,
+      pageEyebrow: entry.pageEyebrow || defaults.pageEyebrow,
+      pageTitle: entry.pageTitle || defaults.pageTitle,
+      introduction: entry.introduction || entry.shortBio || defaults.introduction,
+      readBiographyLabel: entry.readBiographyLabel || defaults.readBiographyLabel,
+      studioTitle: entry.studioTitle || defaults.studioTitle,
+      studioText: entry.studioText || defaults.studioText,
+      quote: entry.quote || defaults.quote,
+      biography: biography.length ? biography : defaults.biography,
+      statement: statement.length ? statement : defaults.statement,
+      cvItems: cvItems.length ? cvItems : defaults.cvItems,
+      pressItems: pressItems.length ? pressItems : defaults.pressItems,
+      portrait: image(entry.portraitSrc, entry.portraitAlt, fallbackPortrait),
+      studio: image(entry.studioSrc, entry.studioAlt, fallbackPortrait),
+      seoTitle: entry.seoTitle,
+      seoDescription: entry.seoDescription,
+      seoImageSrc: entry.seoImageSrc,
+    };
+  } catch (error) {
+    console.error("[sanity] Failed to load About", error);
+    return defaults;
+  }
 }
-
-type RawHomepage = { heroEyebrow?: string; heroTitle?: string; heroSubtitle?: string; heroImageSrc?: string; heroImageAlt?: string; heroArtworkTitle?: string; heroArtworkYear?: string; heroArtworkMedium?: string; heroArtworkDimensions?: string; statementEyebrow?: string; statement?: string; statementLinkLabel?: string; statementImageSrc?: string; statementImageAlt?: string; selectedWorksEyebrow?: string; selectedWorksLinkLabel?: string; selectedWorksNote?: string; selectedWorks?: RawArtworkSummary[]; featuredEyebrow?: string; featuredLinkLabel?: string; featuredSeries?: RawSeries; exhibitionsEyebrow?: string; exhibitionsTitle?: string; exhibitionsNote?: string; exhibitionsLinkLabel?: string; exhibitionsImageSrc?: string; exhibitionsImageAlt?: string; contactTitle?: string; contactHeading?: string; contactEyebrow?: string; contactLinkLabel?: string };
+type RawHomepage = { heroEyebrow?: string; heroTitle?: string; heroSubtitle?: string; heroImageSrc?: string; heroImageAlt?: string; heroArtworkTitle?: string; heroArtworkYear?: string; heroArtworkMedium?: string; heroArtworkDimensions?: string; statementEyebrow?: string; statement?: string; statementLinkLabel?: string; statementImageSrc?: string; statementImageAlt?: string; selectedWorksEyebrow?: string; selectedWorksLinkLabel?: string; selectedWorksNote?: string; selectedWorks?: RawArtworkSummary[]; featuredEyebrow?: string; featuredLinkLabel?: string; featuredSeries?: RawSeries; exhibitionsMode?: "latest" | "manual"; selectedExhibitionSlugs?: string[]; exhibitionsEyebrow?: string; exhibitionsTitle?: string; exhibitionsNote?: string; exhibitionsLinkLabel?: string; exhibitionsImageSrc?: string; exhibitionsImageAlt?: string; contactTitle?: string; contactHeading?: string; contactEyebrow?: string; contactLinkLabel?: string; seoTitle?: string; seoDescription?: string; seoImageSrc?: string };
 
 export async function getHomepage(locale: string): Promise<HomepageContent> {
   if (!sanityConfigured) return fallbackHomepage;
   try {
     const entry = await sanityClient.fetch<LocalizedHomepageQueryResult>(localizedHomepageQuery, { locale }, fetchOptions) as unknown as RawHomepage | null;
     if (!entry?.heroImageSrc) return fallbackHomepage;
-    const exhibitions = await getExhibitions(locale);
-    const selectedWorks = entry.selectedWorks?.length ? entry.selectedWorks.map((work) => ({ ...work, status: status(work.availability), image: image(work.imageSrc, work.imageAlt, fallbackHomepage.hero.image) })) : [...fallbackHomepage.selectedWorks.items];
+    const allExhibitions = await getExhibitions(locale);
+    const exhibitions = entry.exhibitionsMode === "manual" && entry.selectedExhibitionSlugs?.length
+      ? entry.selectedExhibitionSlugs.map((slug) => allExhibitions.find((item) => item.slug === slug)).filter((item): item is (typeof allExhibitions)[number] => Boolean(item))
+      : allExhibitions;
+    const selectedWorks = entry.selectedWorks?.length ? entry.selectedWorks.map((work) => ({ ...work, status: status(work.availability, locale), image: image(work.imageSrc, work.imageAlt, fallbackHomepage.hero.image) })) : [...fallbackHomepage.selectedWorks.items];
     const featured = entry.featuredSeries;
     return {
       ...fallbackHomepage,
+      seoTitle: entry.seoTitle || undefined,
+      seoDescription: entry.seoDescription || undefined,
+      seoImageSrc: entry.seoImageSrc || undefined,
       hero: { ...fallbackHomepage.hero, eyebrow: entry.heroEyebrow || fallbackHomepage.hero.eyebrow, title: (entry.heroTitle || fallbackHomepage.hero.title.join("\n")).split("\n"), subtitle: entry.heroSubtitle || fallbackHomepage.hero.subtitle, image: image(entry.heroImageSrc, entry.heroImageAlt, fallbackHomepage.hero.image), artwork: { title: entry.heroArtworkTitle || fallbackHomepage.hero.artwork.title, year: entry.heroArtworkYear || fallbackHomepage.hero.artwork.year, medium: entry.heroArtworkMedium || fallbackHomepage.hero.artwork.medium, dimensions: entry.heroArtworkDimensions || fallbackHomepage.hero.artwork.dimensions } },
       statement: { ...fallbackHomepage.statement, eyebrow: entry.statementEyebrow || fallbackHomepage.statement.eyebrow, quote: entry.statement || fallbackHomepage.statement.quote, linkLabel: entry.statementLinkLabel || fallbackHomepage.statement.linkLabel, image: image(entry.statementImageSrc, entry.statementImageAlt, fallbackHomepage.statement.image) },
       selectedWorks: { ...fallbackHomepage.selectedWorks, eyebrow: entry.selectedWorksEyebrow || fallbackHomepage.selectedWorks.eyebrow, linkLabel: entry.selectedWorksLinkLabel || fallbackHomepage.selectedWorks.linkLabel, note: entry.selectedWorksNote || fallbackHomepage.selectedWorks.note, items: selectedWorks },
@@ -255,5 +312,24 @@ export async function getArchivePage(locale: string, page: ArchivePageKey): Prom
   } catch (error) {
     console.error(`[sanity] Failed to load archive page ${page}`, error);
     return archiveDefaults[page];
+  }
+}
+
+export async function getContactPage(locale: string): Promise<ContactPageContent> {
+  const fallback: ContactPageContent = {
+    eyebrow: "/ Contact",
+    displayTitle: "Art\nBeyond\nForm",
+    heading: "Get in Touch",
+    introduction: "For inquiries, collaborations and exhibition opportunities.",
+    image: fallbackHomepage.hero.image,
+  };
+  if (!sanityConfigured) return fallback;
+  try {
+    const entry = await sanityClient.fetch<ContactPageQueryResult>(contactPageQuery, { locale }, fetchOptions) as unknown as (Omit<ContactPageContent, "image"> & { image?: RawSanityImage }) | null;
+    if (!entry) return fallback;
+    return { ...fallback, ...entry, image: configuredImage(entry.image) || fallback.image };
+  } catch (error) {
+    console.error("[sanity] Failed to load contact page", error);
+    return fallback;
   }
 }

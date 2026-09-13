@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: { default: "Alexander Mikhaleff — Contemporary Artist", template: "%s — Alexander Mikhaleff" },
   description: "The official digital gallery and archive of contemporary artist Alexander Mikhaleff.",
   applicationName: "MIKHALEFF",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/favicon.svg", type: "image/svg+xml" }] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

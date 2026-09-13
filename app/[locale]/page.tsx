@@ -11,7 +11,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return buildLocalizedMetadata({ locale, title: "Alexander Mikhaleff — Contemporary Artist", description: "The official digital gallery and archive of contemporary artist Alexander Mikhaleff." });
+  const content = await getHomepage(locale);
+  return buildLocalizedMetadata({ locale, title: content.seoTitle || content.hero.title.join(" "), description: content.seoDescription || content.hero.subtitle, image: content.seoImageSrc || content.hero.image.src });
 }
 
 export default async function LocalizedHomepage({ params }: { params: Promise<{ locale: string }> }) {

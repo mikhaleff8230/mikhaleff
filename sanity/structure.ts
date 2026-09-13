@@ -16,6 +16,7 @@ export const structure: StructureResolver = (S) => S.list().title("MIKHALEFF STU
   ])),
   S.listItem().title("ART").child(S.list().title("ART").items([
     S.documentTypeListItem("artwork").title("ARTWORKS"),
+    S.documentTypeListItem("material").title("MATERIALS / MEDIUMS"),
     S.documentTypeListItem("series").title("COLLECTIONS"),
     S.documentTypeListItem("exhibition").title("EXHIBITIONS"),
     S.documentTypeListItem("interiorScene").title("GLOBAL INTERIOR SCENES / VIEW IN SPACE"),

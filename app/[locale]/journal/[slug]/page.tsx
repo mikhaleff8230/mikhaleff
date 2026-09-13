@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { getJournal } from "@/lib/content/repository";
 import { isSupportedLocale } from "@/lib/i18n/config";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 import { buildLocalizedMetadata } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +14,13 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
   const entry = (await getJournal(locale)).find((item) => item.slug === slug);
-  return entry ? buildLocalizedMetadata({ locale, path: `/journal/${slug}`, title: entry.title, description: entry.excerpt, image: entry.image.src }) : {};
+  return entry ? buildLocalizedMetadata({ locale, path: `/journal/${slug}`, title: entry.seoTitle || entry.title, description: entry.seoDescription || entry.excerpt, image: entry.seoImageSrc || entry.image.src }) : {};
 }
 
 export default async function JournalDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   if (!isSupportedLocale(locale)) notFound();
+  const labels = getInterfaceCopy(locale).journal;
   const journal = await getJournal(locale);
   const entry = journal.find((item) => item.slug === slug);
   if (!entry) notFound();
@@ -28,10 +30,10 @@ export default async function JournalDetailPage({ params }: { params: Promise<{ 
     <main className="journal-detail">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <SiteHeader locale={locale} />
-      <header className="journal-detail__header"><Link className="text-link" href={`/${locale}/journal`}>← Journal</Link><p className="eyebrow">{entry.category} · {entry.date}</p><h1>{entry.title}</h1><p>{entry.excerpt}</p></header>
+      <header className="journal-detail__header"><Link className="text-link" href={`/${locale}/journal`}>← {labels.back}</Link><p className="eyebrow">{entry.category} · {entry.date}</p><h1>{entry.title}</h1><p>{entry.excerpt}</p></header>
       <div className="journal-detail__hero"><Image src={entry.image.src} alt={entry.image.alt} fill priority sizes="100vw" style={{ objectPosition: entry.image.position }} /></div>
       <article className="journal-prose">{entry.body.map((paragraph, index) => index === 0 ? <p className="journal-prose__lead" key={paragraph}>{paragraph}</p> : <p key={paragraph}>{paragraph}</p>)}</article>
-      <Link className="next-work" href={`/${locale}/journal/${next.slug}`}><span className="eyebrow">Next journal entry</span><strong>{next.title}</strong><span>→</span></Link>
+      <Link className="next-work" href={`/${locale}/journal/${next.slug}`}><span className="eyebrow">{labels.next}</span><strong>{next.title}</strong><span>→</span></Link>
       <SiteFooter locale={locale} />
     </main>
   );

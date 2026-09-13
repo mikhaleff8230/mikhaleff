@@ -13,6 +13,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { getArtworks, getInteriorScenes } from "@/lib/content/repository";
 import { isSupportedLocale } from "@/lib/i18n/config";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 import { buildLocalizedMetadata } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
 
   const [artworks, interiorScenes] = await Promise.all([getArtworks(locale), getInteriorScenes(locale)]);
   const artwork = artworks.find((item) => item.slug === slug);
+  const labels = getInterfaceCopy(locale).artwork;
   if (!artwork) notFound();
 
   const currentIndex = artworks.findIndex((item) => item.slug === slug);
@@ -49,7 +51,7 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
   const displayedPrice = artwork.showPrice && typeof artwork.price === "number"
     ? `${new Intl.NumberFormat(locale === "ru" ? "ru-RU" : locale === "zh" ? "zh-CN" : "en-US").format(artwork.price)} ${artwork.currency || "USD"}`
     : null;
-  const priceLabel = locale === "ru" ? "Цена" : locale === "zh" ? "价格" : "Price";
+  const priceLabel = labels.price;
   const jsonLdImage = primaryImage.src.startsWith("http") ? primaryImage.src : `https://mikhaleff.art${primaryImage.src}`;
   const jsonLd = { "@context": "https://schema.org", "@type": "VisualArtwork", name: artwork.title, dateCreated: artwork.year, artMedium: artwork.medium, width: artwork.dimensions, creator: { "@type": "Person", name: "Alexander Mikhaleff" }, image: jsonLdImage };
 
@@ -65,31 +67,31 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
             <p className="eyebrow">{artwork.year}</p>
             <h1 id="artwork-title">{artwork.title}</h1>
             <dl>
-              <div><dt>Medium</dt><dd>{artwork.medium}</dd></div>
-              <div><dt>Dimensions</dt><dd>{artwork.dimensions}</dd></div>
-              <div><dt>Status</dt><dd>{artwork.status}</dd></div>
+              <div><dt>{labels.medium}</dt><dd>{artwork.medium}</dd></div>
+              <div><dt>{labels.dimensions}</dt><dd>{artwork.dimensions}</dd></div>
+              <div><dt>{labels.status}</dt><dd>{artwork.status}</dd></div>
               {displayedPrice && <div><dt>{priceLabel}</dt><dd>{displayedPrice}</dd></div>}
             </dl>
-            <InquiryDialog artwork={{ slug: artwork.slug, title: artwork.title }} />
+            <InquiryDialog artwork={{ slug: artwork.slug, title: artwork.title }} locale={locale} />
             <Link className="collection-link" href={`/${locale}/contact`}>Add to collection <span>＋</span></Link>
             {artwork.artistComment && <div className="artwork-comment"><p>“{artwork.artistComment}”</p><a href="#about-work">Read more <span>→</span></a></div>}
           </ArtworkOpeningGallery>
         </section>
 
         <section className="artwork-about" id="about-work" data-scroll-scene="about">
-          <div className="artwork-section-label"><span>About this work</span></div>
+          <div className="artwork-section-label"><span>{labels.about}</span></div>
           <p className="artwork-about__copy">{artwork.description}</p>
           <dl className="artwork-about__facts">
-            <div><dt>Year</dt><dd>{artwork.year}</dd></div>
-            <div><dt>Medium</dt><dd>{artwork.medium}</dd></div>
-            <div><dt>Dimensions</dt><dd>{artwork.dimensions}</dd></div>
-            <div><dt>Collection</dt><dd>{artwork.series}</dd></div>
-            <div><dt>Status</dt><dd>{artwork.status}</dd></div>
+            <div><dt>{labels.year}</dt><dd>{artwork.year}</dd></div>
+            <div><dt>{labels.medium}</dt><dd>{artwork.medium}</dd></div>
+            <div><dt>{labels.dimensions}</dt><dd>{artwork.dimensions}</dd></div>
+            <div><dt>{labels.collection}</dt><dd>{artwork.series}</dd></div>
+            <div><dt>{labels.status}</dt><dd>{artwork.status}</dd></div>
           </dl>
         </section>
 
         {detailPreviews.length > 0 && <section className="artwork-details" id="details" data-scroll-scene="details">
-          <div className="artwork-section-label"><span>Details</span></div>
+          <div className="artwork-section-label"><span>{labels.details}</span></div>
           <div className="artwork-details__grid">
             {detailPreviews.map((detail, index) => <figure key={`${detail.src}-large-${index}`}><ArtworkDetailImage index={index + 1} /><figcaption>Detail {String(index + 1).padStart(2, "0")} <b>↗</b></figcaption></figure>)}
           </div>
@@ -97,10 +99,10 @@ export default async function ArtworkPage({ params }: { params: Promise<{ locale
 
         {artwork.video && <section className="artwork-video-section" id="film" data-scroll-scene="film"><ArtworkVideoBlock video={artwork.video} /></section>}
 
-        {viewInSpaceAvailable && <ViewInSpaceSection artwork={artwork} scenes={interiorScenes} />}
+        {viewInSpaceAvailable && <ViewInSpaceSection artwork={artwork} scenes={interiorScenes} locale={locale} />}
 
         {related.length > 0 && <section className="artwork-related" id="related-works" data-scroll-scene="related">
-          <div className="artwork-section-label"><span>Related works</span></div>
+          <div className="artwork-section-label"><span>{labels.related}</span></div>
           <div className="artwork-related__grid">
             {related.map((item) => <Link href={`/${locale}/works/${item.slug}`} key={item.slug}><span><Image src={item.image.src} alt={item.image.alt} fill sizes="20vw" style={{ objectPosition: item.image.position }} /></span><strong>{item.title}</strong><small>{item.year}</small></Link>)}
           </div>

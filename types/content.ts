@@ -49,6 +49,11 @@ export type ArtworkCard = {
   artistComment?: string;
   relatedArtworkSlugs?: readonly string[];
   exhibition?: ArtworkExhibition;
+  exhibitionFeatured?: boolean;
+  exhibitionOrder?: number;
+  exhibitionScale?: number;
+  exhibitionAlignment?: "auto" | "left" | "center" | "right";
+  exhibitionOffset?: { x?: number; y?: number };
   video?: ArtworkVideo;
   widthCm?: number;
   heightCm?: number;
@@ -57,7 +62,7 @@ export type ArtworkCard = {
   frameAllowed?: boolean;
   trueScaleEnabled?: boolean;
   series?: string;
-  status?: "Available" | "Private collection" | "Sold";
+  status?: string;
   showPrice?: boolean;
   price?: number;
   currency?: string;
@@ -72,6 +77,7 @@ export type SeriesEntry = {
   description: string;
   cover: ImageAsset;
   artworkSlugs: readonly string[];
+  seoTitle?: string; seoDescription?: string; seoImageSrc?: string;
 };
 
 export type ExhibitionEntry = {
@@ -82,21 +88,23 @@ export type ExhibitionEntry = {
   venue: string;
   city: string;
   country: string;
-  format: "Solo exhibition" | "Group exhibition";
+  format: string;
   introduction: string;
   description: string;
   image: ImageAsset;
   artworkSlugs: readonly string[];
+  seoTitle?: string; seoDescription?: string; seoImageSrc?: string;
 };
 
 export type JournalEntry = {
   slug: string;
   title: string;
-  category: "Studio note" | "Conversation" | "Essay" | "News";
+  category: string;
   date: string;
   excerpt: string;
   body: readonly string[];
   image: ImageAsset;
+  seoTitle?: string; seoDescription?: string; seoImageSrc?: string;
 };
 
 export type HomepageContent = {
@@ -119,4 +127,16 @@ export type HomepageContent = {
     items: readonly { year: string; title: string; location: string }[];
   };
   contact: { title: readonly string[]; heading: string; eyebrow: string; linkLabel: string };
+  seoTitle?: string; seoDescription?: string; seoImageSrc?: string;
+};
+
+export type ContactPageContent = {
+  eyebrow: string;
+  displayTitle: string;
+  heading: string;
+  introduction: string;
+  image: ImageAsset;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoImageSrc?: string;
 };

@@ -118,8 +118,11 @@ export type Contact = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  eyebrow?: LocalizedString;
+  displayTitle?: LocalizedString;
   heading?: LocalizedString;
   introduction?: LocalizedText;
+  backgroundImage?: ImageWithMetadata;
   artwork?: ArtworkReference;
   email?: string;
   instagram?: string;
@@ -134,6 +137,12 @@ export type About = {
   _updatedAt: string;
   _rev: string;
   artistName: string;
+  pageEyebrow?: LocalizedString;
+  pageTitle?: LocalizedString;
+  introduction?: LocalizedText;
+  readBiographyLabel?: LocalizedString;
+  studioTitle?: LocalizedString;
+  studioText?: LocalizedText;
   portrait?: ImageWithMetadata;
   studioImages?: Array<
     {
@@ -332,6 +341,13 @@ export type Slug = {
   source?: string;
 };
 
+export type MaterialReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "material";
+};
+
 export type SanityFileAssetReference = {
   _ref: string;
   _type: "reference";
@@ -354,10 +370,11 @@ export type Artwork = {
   _rev: string;
   title: LocalizedString;
   slug: Slug;
-  internalId: string;
+  internalId?: string;
   inventoryNumber?: string;
   year: number;
   series?: SeriesReference;
+  mediumRef?: MaterialReference;
   medium?: string;
   materials?: Array<string>;
   category?: string;
@@ -372,8 +389,13 @@ export type Artwork = {
     | "museum"
     | "unavailable";
   showPrice?: boolean;
+  prices?: {
+    usd?: number;
+    rub?: number;
+    cny?: number;
+  };
   price?: number;
-  currency?: "USD" | "EUR" | "RUB" | "CNY";
+  currency?: string;
   mainImage: ImageWithMetadata;
   heroImage?: ImageWithMetadata;
   galleryImage?: ImageWithMetadata;
@@ -466,6 +488,17 @@ export type Dimensions = {
   height?: number;
   depth?: number;
   unit?: "cm" | "in";
+};
+
+export type Material = {
+  _id: string;
+  _type: "material";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  key: Slug;
+  title: LocalizedString;
+  order?: number;
 };
 
 export type Language = {
@@ -721,11 +754,13 @@ export type AllSanitySchemaTypes =
   | Homepage
   | Journal
   | Slug
+  | MaterialReference
   | SanityFileAssetReference
   | InteriorSceneReference
   | Artwork
   | InteriorScene
   | Dimensions
+  | Material
   | Language
   | HomepageSection
   | Exhibition
@@ -831,7 +866,7 @@ export type ExhibitionWorksQueryResult = Array<{
 
 // Source: lib/sanity/queries.ts
 // Variable: artworksQuery
-// Query: *[_type == "artwork" && hideFromArchive != true] | order(artworkOrder asc, year desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),  "year": string(year),  medium,  "dimensions": select(defined(dimensions.width) && defined(dimensions.height) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),  "widthCm": select(dimensions.unit == "in" => dimensions.width * 2.54, dimensions.unit == "mm" => dimensions.width / 10, dimensions.width),  "heightCm": select(dimensions.unit == "in" => dimensions.height * 2.54, dimensions.unit == "mm" => dimensions.height / 10, dimensions.height),  "imageSrc": mainImage.asset->url,  "imageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "primaryImageSrc": mainImage.asset->url,  "primaryImageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "primaryImageWidth": mainImage.asset->metadata.dimensions.width,  "primaryImageHeight": mainImage.asset->metadata.dimensions.height,  "detailImages": detailImages[]{    _type, asset, crop, hotspot,    "src": asset->url,    "width": asset->metadata.dimensions.width,    "height": asset->metadata.dimensions.height,    "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Artwork detail")  },  "textureImages": textureImages[]{    _type, asset, crop, hotspot,    "src": asset->url,    "width": asset->metadata.dimensions.width,    "height": asset->metadata.dimensions.height,    "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Artwork texture")  },  "artistComment": coalesce(  select($locale == "ru" => artistComment.ru, $locale == "zh" => artistComment.zh, artistComment.en),  artistComment.en, artistComment.ru, artistComment.zh),  "relatedArtworkSlugs": relatedArtworks[]->slug.current,  viewInSpaceEnabled,  "preferredInteriorSceneSlug": preferredInteriorScene->slug.current,  frameAllowed,  trueScaleEnabled,  "video": select(    defined(videoFile.asset) || defined(videoExternalUrl) || defined(videoPoster.asset) => {      "src": coalesce(videoFile.asset->url, videoExternalUrl),      "poster": videoPoster{        _type, asset, crop, hotspot,        "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.videoTitle.ru, $locale == "zh" => ^.videoTitle.zh, ^.videoTitle.en),  ^.videoTitle.en, ^.videoTitle.ru, ^.videoTitle.zh), "Studio film")      },      "eyebrow": coalesce(  select($locale == "ru" => videoEyebrow.ru, $locale == "zh" => videoEyebrow.zh, videoEyebrow.en),  videoEyebrow.en, videoEyebrow.ru, videoEyebrow.zh),      "title": coalesce(  select($locale == "ru" => videoTitle.ru, $locale == "zh" => videoTitle.zh, videoTitle.en),  videoTitle.en, videoTitle.ru, videoTitle.zh),      "caption": coalesce(  select($locale == "ru" => videoCaption.ru, $locale == "zh" => videoCaption.zh, videoCaption.en),  videoCaption.en, videoCaption.ru, videoCaption.zh)    }  ),  "exhibition": exhibitions[0]->{    "slug": slug.current,    "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),    startDate, venue, city, country,    "image": coalesce(installationViews[0], cover){      _type, asset, crop, hotspot,      "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Exhibition view")    }  },  "series": coalesce(  select($locale == "ru" => series->title.ru, $locale == "zh" => series->title.zh, series->title.en),  series->title.en, series->title.ru, series->title.zh),  availability,  showPrice,  price,  currency,  "description": coalesce(    pt::text(coalesce(  select($locale == "ru" => description.ru, $locale == "zh" => description.zh, description.en),  description.en, description.ru, description.zh)),    coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh)  )}
+// Query: *[_type == "artwork" && hideFromArchive != true] | order(artworkOrder asc, year desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),  "year": string(year),  "medium": coalesce(    select($locale == "ru" => mediumRef->title.ru, $locale == "zh" => mediumRef->title.zh, mediumRef->title.en),    mediumRef->title.en, mediumRef->title.ru, mediumRef->title.zh, medium  ),  "dimensions": select(defined(dimensions.width) && defined(dimensions.height) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),  "widthCm": select(dimensions.unit == "in" => dimensions.width * 2.54, dimensions.unit == "mm" => dimensions.width / 10, dimensions.width),  "heightCm": select(dimensions.unit == "in" => dimensions.height * 2.54, dimensions.unit == "mm" => dimensions.height / 10, dimensions.height),  "imageSrc": mainImage.asset->url,  "imageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "primaryImageSrc": mainImage.asset->url,  "primaryImageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "primaryImageWidth": mainImage.asset->metadata.dimensions.width,  "primaryImageHeight": mainImage.asset->metadata.dimensions.height,  "detailImages": detailImages[]{    _type, asset, crop, hotspot,    "src": asset->url,    "width": asset->metadata.dimensions.width,    "height": asset->metadata.dimensions.height,    "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Artwork detail")  },  "textureImages": textureImages[]{    _type, asset, crop, hotspot,    "src": asset->url,    "width": asset->metadata.dimensions.width,    "height": asset->metadata.dimensions.height,    "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Artwork texture")  },  "artistComment": coalesce(  select($locale == "ru" => artistComment.ru, $locale == "zh" => artistComment.zh, artistComment.en),  artistComment.en, artistComment.ru, artistComment.zh),  "relatedArtworkSlugs": relatedArtworks[]->slug.current,  viewInSpaceEnabled,  "preferredInteriorSceneSlug": preferredInteriorScene->slug.current,  frameAllowed,  trueScaleEnabled,  "video": select(    defined(videoFile.asset) || defined(videoExternalUrl) || defined(videoPoster.asset) => {      "src": coalesce(videoFile.asset->url, videoExternalUrl),      "poster": videoPoster{        _type, asset, crop, hotspot,        "src": asset->url,        "width": asset->metadata.dimensions.width,        "height": asset->metadata.dimensions.height,        "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.videoTitle.ru, $locale == "zh" => ^.videoTitle.zh, ^.videoTitle.en),  ^.videoTitle.en, ^.videoTitle.ru, ^.videoTitle.zh), "Studio film")      },      "eyebrow": coalesce(  select($locale == "ru" => videoEyebrow.ru, $locale == "zh" => videoEyebrow.zh, videoEyebrow.en),  videoEyebrow.en, videoEyebrow.ru, videoEyebrow.zh),      "title": coalesce(  select($locale == "ru" => videoTitle.ru, $locale == "zh" => videoTitle.zh, videoTitle.en),  videoTitle.en, videoTitle.ru, videoTitle.zh),      "caption": coalesce(  select($locale == "ru" => videoCaption.ru, $locale == "zh" => videoCaption.zh, videoCaption.en),  videoCaption.en, videoCaption.ru, videoCaption.zh)    }  ),  "exhibition": exhibitions[0]->{    "slug": slug.current,    "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),    startDate, venue, city, country,    "image": coalesce(installationViews[0], cover){      _type, asset, crop, hotspot,      "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), coalesce(  select($locale == "ru" => ^.title.ru, $locale == "zh" => ^.title.zh, ^.title.en),  ^.title.en, ^.title.ru, ^.title.zh), "Exhibition view")    }  },  "series": coalesce(  select($locale == "ru" => series->title.ru, $locale == "zh" => series->title.zh, series->title.en),  series->title.en, series->title.ru, series->title.zh),  availability,  exhibitionFeatured, exhibitionOrder, exhibitionScale, exhibitionAlignment, exhibitionOffset,  showPrice,  "price": coalesce(    select($locale == "ru" => prices.rub, $locale == "zh" => prices.cny, prices.usd),    select($locale == "ru" && currency == "RUB" => price, $locale == "zh" && currency == "CNY" => price, $locale == "en" && currency == "USD" => price)  ),  "currency": select($locale == "ru" => "RUB", $locale == "zh" => "CNY", "USD"),  "description": coalesce(    pt::text(coalesce(  select($locale == "ru" => description.ru, $locale == "zh" => description.zh, description.en),  description.en, description.ru, description.zh)),    coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh)  )}
 export type ArtworksQueryResult = Array<{
   slug: string;
   title: string | null;
@@ -879,6 +914,9 @@ export type ArtworksQueryResult = Array<{
       asset: SanityImageAssetReference | null;
       crop: SanityImageCrop | null;
       hotspot: SanityImageHotspot | null;
+      src: string | null;
+      width: number | null;
+      height: number | null;
       alt: string | "Studio film";
     } | null;
     eyebrow: string | null;
@@ -909,9 +947,17 @@ export type ArtworksQueryResult = Array<{
     | "sold"
     | "unavailable"
     | null;
+  exhibitionFeatured: boolean | null;
+  exhibitionOrder: number | null;
+  exhibitionScale: number | null;
+  exhibitionAlignment: "auto" | "center" | "left" | "right" | null;
+  exhibitionOffset: {
+    x?: number;
+    y?: number;
+  } | null;
   showPrice: boolean | null;
   price: number | null;
-  currency: "CNY" | "EUR" | "RUB" | "USD" | null;
+  currency: "CNY" | "RUB" | "USD";
   description: string;
 }>;
 
@@ -956,22 +1002,25 @@ export type InteriorScenesQueryResult = Array<{
 
 // Source: lib/sanity/queries.ts
 // Variable: seriesQuery
-// Query: *[_type == "series"] | order(order asc, startYear desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),  "statement": coalesce(coalesce(  select($locale == "ru" => subtitle.ru, $locale == "zh" => subtitle.zh, subtitle.en),  subtitle.en, subtitle.ru, subtitle.zh), coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh)),  "description": coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh),  startYear, endYear,  "imageSrc": coalesce(heroImage.asset->url, coverImage.asset->url),  "imageAlt": coalesce(coalesce(  select($locale == "ru" => coverImage.alt.ru, $locale == "zh" => coverImage.alt.zh, coverImage.alt.en),  coverImage.alt.en, coverImage.alt.ru, coverImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "artworkSlugs": *[_type == "artwork" && references(^._id) && hideFromArchive != true] | order(artworkOrder asc, year desc).slug.current}
+// Query: *[_type == "series"] | order(order asc, startYear desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh),  "statement": coalesce(coalesce(  select($locale == "ru" => subtitle.ru, $locale == "zh" => subtitle.zh, subtitle.en),  subtitle.en, subtitle.ru, subtitle.zh), coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh)),  "description": coalesce(pt::text(coalesce(  select($locale == "ru" => description.ru, $locale == "zh" => description.zh, description.en),  description.en, description.ru, description.zh)), coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh)),  startYear, endYear,  "imageSrc": coalesce(heroImage.asset->url, coverImage.asset->url),  "imageAlt": coalesce(coalesce(  select($locale == "ru" => coverImage.alt.ru, $locale == "zh" => coverImage.alt.zh, coverImage.alt.en),  coverImage.alt.en, coverImage.alt.ru, coverImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "artworkSlugs": *[_type == "artwork" && references(^._id) && hideFromArchive != true] | order(artworkOrder asc, year desc).slug.current,  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url}
 export type SeriesQueryResult = Array<{
   slug: string;
   title: string | null;
   statement: string | null;
-  description: string | null;
+  description: string;
   startYear: number | null;
   endYear: number | null;
   imageSrc: string | null;
   imageAlt: string | null;
   artworkSlugs: Array<string>;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
 }>;
 
 // Source: lib/sanity/queries.ts
 // Variable: exhibitionsQuery
-// Query: *[_type == "exhibition"] | order(startDate desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), type, startDate, endDate, venue, city, country,  "introduction": coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh),  "description": coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh),  "imageSrc": coalesce(installationViews[0].asset->url, cover.asset->url),  "imageAlt": coalesce(coalesce(  select($locale == "ru" => cover.alt.ru, $locale == "zh" => cover.alt.zh, cover.alt.en),  cover.alt.en, cover.alt.ru, cover.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "artworkSlugs": *[_type == "artwork" && references(^._id) && hideFromArchive != true] | order(artworkOrder asc, year desc).slug.current}
+// Query: *[_type == "exhibition"] | order(startDate desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), type, startDate, endDate, venue, city, country,  "introduction": coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh),  "description": coalesce(pt::text(coalesce(  select($locale == "ru" => description.ru, $locale == "zh" => description.zh, description.en),  description.en, description.ru, description.zh)), coalesce(  select($locale == "ru" => shortDescription.ru, $locale == "zh" => shortDescription.zh, shortDescription.en),  shortDescription.en, shortDescription.ru, shortDescription.zh)),  "imageSrc": coalesce(installationViews[0].asset->url, cover.asset->url),  "imageAlt": coalesce(coalesce(  select($locale == "ru" => cover.alt.ru, $locale == "zh" => cover.alt.zh, cover.alt.en),  cover.alt.en, cover.alt.ru, cover.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "artworkSlugs": *[_type == "artwork" && references(^._id) && hideFromArchive != true] | order(artworkOrder asc, year desc).slug.current,  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url}
 export type ExhibitionsQueryResult = Array<{
   slug: string;
   title: string | null;
@@ -982,38 +1031,79 @@ export type ExhibitionsQueryResult = Array<{
   city: string | null;
   country: string | null;
   introduction: string | null;
-  description: string | null;
+  description: string;
   imageSrc: string | null;
   imageAlt: string | null;
   artworkSlugs: Array<string>;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
 }>;
 
 // Source: lib/sanity/queries.ts
 // Variable: journalQuery
-// Query: *[_type == "journal"] | order(date desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), category, date,  "excerpt": coalesce(  select($locale == "ru" => excerpt.ru, $locale == "zh" => excerpt.zh, excerpt.en),  excerpt.en, excerpt.ru, excerpt.zh),  "body": coalesce((coalesce(  select($locale == "ru" => content.ru, $locale == "zh" => content.zh, content.en),  content.en, content.ru, content.zh))[].children[].text, []),  "imageSrc": cover.asset->url,  "imageAlt": coalesce(coalesce(  select($locale == "ru" => cover.alt.ru, $locale == "zh" => cover.alt.zh, cover.alt.en),  cover.alt.en, cover.alt.ru, cover.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh))}
+// Query: *[_type == "journal"] | order(date desc) {  "slug": slug.current,  "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), category, date,  "excerpt": coalesce(  select($locale == "ru" => excerpt.ru, $locale == "zh" => excerpt.zh, excerpt.en),  excerpt.en, excerpt.ru, excerpt.zh),  "bodyText": pt::text(coalesce(  select($locale == "ru" => content.ru, $locale == "zh" => content.zh, content.en),  content.en, content.ru, content.zh)),  "imageSrc": cover.asset->url,  "imageAlt": coalesce(coalesce(  select($locale == "ru" => cover.alt.ru, $locale == "zh" => cover.alt.zh, cover.alt.en),  cover.alt.en, cover.alt.ru, cover.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh)),  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url}
 export type JournalQueryResult = Array<{
   slug: string;
   title: string | null;
   category: string | null;
   date: string;
   excerpt: string | null;
-  body: Array<never> | Array<string | null>;
+  bodyText: string;
   imageSrc: string | null;
   imageAlt: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
 }>;
 
 // Source: lib/sanity/queries.ts
 // Variable: aboutQuery
-// Query: *[_type == "about"][0] {  "quote": coalesce(  select($locale == "ru" => quote.ru, $locale == "zh" => quote.zh, quote.en),  quote.en, quote.ru, quote.zh),  "shortBio": coalesce(  select($locale == "ru" => shortBio.ru, $locale == "zh" => shortBio.zh, shortBio.en),  shortBio.en, shortBio.ru, shortBio.zh),  "biographyText": pt::text(coalesce(  select($locale == "ru" => fullBiography.ru, $locale == "zh" => fullBiography.zh, fullBiography.en),  fullBiography.en, fullBiography.ru, fullBiography.zh)),  "statementText": pt::text(coalesce(  select($locale == "ru" => artistStatement.ru, $locale == "zh" => artistStatement.zh, artistStatement.en),  artistStatement.en, artistStatement.ru, artistStatement.zh)),  "portraitSrc": portrait.asset->url,  "portraitAlt": coalesce(coalesce(  select($locale == "ru" => portrait.alt.ru, $locale == "zh" => portrait.alt.zh, portrait.alt.en),  portrait.alt.en, portrait.alt.ru, portrait.alt.zh), artistName),  "studioSrc": studioImages[0].asset->url,  "studioAlt": coalesce(coalesce(  select($locale == "ru" => studioImages[0].alt.ru, $locale == "zh" => studioImages[0].alt.zh, studioImages[0].alt.en),  studioImages[0].alt.en, studioImages[0].alt.ru, studioImages[0].alt.zh), "Artist studio")}
+// Query: *[_type == "about"][0] {  artistName,  "pageEyebrow": coalesce(  select($locale == "ru" => pageEyebrow.ru, $locale == "zh" => pageEyebrow.zh, pageEyebrow.en),  pageEyebrow.en, pageEyebrow.ru, pageEyebrow.zh),  "pageTitle": coalesce(  select($locale == "ru" => pageTitle.ru, $locale == "zh" => pageTitle.zh, pageTitle.en),  pageTitle.en, pageTitle.ru, pageTitle.zh),  "introduction": coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh),  "readBiographyLabel": coalesce(  select($locale == "ru" => readBiographyLabel.ru, $locale == "zh" => readBiographyLabel.zh, readBiographyLabel.en),  readBiographyLabel.en, readBiographyLabel.ru, readBiographyLabel.zh),  "studioTitle": coalesce(  select($locale == "ru" => studioTitle.ru, $locale == "zh" => studioTitle.zh, studioTitle.en),  studioTitle.en, studioTitle.ru, studioTitle.zh),  "studioText": coalesce(  select($locale == "ru" => studioText.ru, $locale == "zh" => studioText.zh, studioText.en),  studioText.en, studioText.ru, studioText.zh),  "quote": coalesce(  select($locale == "ru" => quote.ru, $locale == "zh" => quote.zh, quote.en),  quote.en, quote.ru, quote.zh),  "shortBio": coalesce(  select($locale == "ru" => shortBio.ru, $locale == "zh" => shortBio.zh, shortBio.en),  shortBio.en, shortBio.ru, shortBio.zh),  "biographyText": pt::text(coalesce(  select($locale == "ru" => fullBiography.ru, $locale == "zh" => fullBiography.zh, fullBiography.en),  fullBiography.en, fullBiography.ru, fullBiography.zh)),  "statementText": pt::text(coalesce(  select($locale == "ru" => artistStatement.ru, $locale == "zh" => artistStatement.zh, artistStatement.en),  artistStatement.en, artistStatement.ru, artistStatement.zh)),  "cvText": pt::text(coalesce(  select($locale == "ru" => cv.ru, $locale == "zh" => cv.zh, cv.en),  cv.en, cv.ru, cv.zh)),  "pressText": pt::text(coalesce(  select($locale == "ru" => publications.ru, $locale == "zh" => publications.zh, publications.en),  publications.en, publications.ru, publications.zh)),  "portraitSrc": portrait.asset->url,  "portraitAlt": coalesce(coalesce(  select($locale == "ru" => portrait.alt.ru, $locale == "zh" => portrait.alt.zh, portrait.alt.en),  portrait.alt.en, portrait.alt.ru, portrait.alt.zh), artistName),  "studioSrc": studioImages[0].asset->url,  "studioAlt": coalesce(coalesce(  select($locale == "ru" => studioImages[0].alt.ru, $locale == "zh" => studioImages[0].alt.zh, studioImages[0].alt.en),  studioImages[0].alt.en, studioImages[0].alt.ru, studioImages[0].alt.zh), "Artist studio"),  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url}
 export type AboutQueryResult = {
+  artistName: string;
+  pageEyebrow: string | null;
+  pageTitle: string | null;
+  introduction: string | null;
+  readBiographyLabel: string | null;
+  studioTitle: string | null;
+  studioText: string | null;
   quote: string | null;
   shortBio: string | null;
   biographyText: string;
   statementText: string;
+  cvText: string;
+  pressText: string;
   portraitSrc: string | null;
   portraitAlt: string;
   studioSrc: string | null;
   studioAlt: string | "Artist studio";
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
+} | null;
+
+// Source: lib/sanity/queries.ts
+// Variable: contactPageQuery
+// Query: *[_type == "contact"][0] {  "eyebrow": coalesce(  select($locale == "ru" => eyebrow.ru, $locale == "zh" => eyebrow.zh, eyebrow.en),  eyebrow.en, eyebrow.ru, eyebrow.zh),  "displayTitle": coalesce(  select($locale == "ru" => displayTitle.ru, $locale == "zh" => displayTitle.zh, displayTitle.en),  displayTitle.en, displayTitle.ru, displayTitle.zh),  "heading": coalesce(  select($locale == "ru" => heading.ru, $locale == "zh" => heading.zh, heading.en),  heading.en, heading.ru, heading.zh),  "introduction": coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh),  "image": coalesce(backgroundImage, artwork->mainImage) {    _type, asset, crop, hotspot,    "src": asset->url,    "width": asset->metadata.dimensions.width,    "height": asset->metadata.dimensions.height,    "alt": coalesce(coalesce(  select($locale == "ru" => alt.ru, $locale == "zh" => alt.zh, alt.en),  alt.en, alt.ru, alt.zh), "Contact artwork")  },  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url}
+export type ContactPageQueryResult = {
+  eyebrow: string | null;
+  displayTitle: string | null;
+  heading: string | null;
+  introduction: string | null;
+  image: {
+    _type: "imageWithMetadata";
+    asset: SanityImageAssetReference | null;
+    crop: SanityImageCrop | null;
+    hotspot: SanityImageHotspot | null;
+    src: string | null;
+    width: number | null;
+    height: number | null;
+    alt: string | "Contact artwork";
+  } | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
 } | null;
 
 // Source: lib/sanity/queries.ts
@@ -1045,7 +1135,7 @@ export type SiteSettingsQueryResult = {
 
 // Source: lib/sanity/queries.ts
 // Variable: localizedHomepageQuery
-// Query: *[_type == "homepage"][0] {  "heroEyebrow": coalesce(  select($locale == "ru" => heroEyebrow.ru, $locale == "zh" => heroEyebrow.zh, heroEyebrow.en),  heroEyebrow.en, heroEyebrow.ru, heroEyebrow.zh),  "heroTitle": coalesce(  select($locale == "ru" => heroTitle.ru, $locale == "zh" => heroTitle.zh, heroTitle.en),  heroTitle.en, heroTitle.ru, heroTitle.zh),  "heroSubtitle": coalesce(  select($locale == "ru" => heroSubtitle.ru, $locale == "zh" => heroSubtitle.zh, heroSubtitle.en),  heroSubtitle.en, heroSubtitle.ru, heroSubtitle.zh),  "heroImageSrc": heroImageOverride.asset->url,  "heroImageAlt": coalesce(coalesce(  select($locale == "ru" => heroImageOverride.alt.ru, $locale == "zh" => heroImageOverride.alt.zh, heroImageOverride.alt.en),  heroImageOverride.alt.en, heroImageOverride.alt.ru, heroImageOverride.alt.zh), "Homepage hero"),  "heroArtworkTitle": coalesce(  select($locale == "ru" => heroArtwork->title.ru, $locale == "zh" => heroArtwork->title.zh, heroArtwork->title.en),  heroArtwork->title.en, heroArtwork->title.ru, heroArtwork->title.zh),  "heroArtworkYear": string(heroArtwork->year),  "heroArtworkMedium": heroArtwork->medium,  "heroArtworkDimensions": select(defined(heroArtwork->dimensions.width) => string(heroArtwork->dimensions.width) + " × " + string(heroArtwork->dimensions.height) + " " + coalesce(heroArtwork->dimensions.unit, "cm"), "—"),  "statementEyebrow": coalesce(  select($locale == "ru" => statementEyebrow.ru, $locale == "zh" => statementEyebrow.zh, statementEyebrow.en),  statementEyebrow.en, statementEyebrow.ru, statementEyebrow.zh),  "statement": coalesce(  select($locale == "ru" => statementText.ru, $locale == "zh" => statementText.zh, statementText.en),  statementText.en, statementText.ru, statementText.zh),  "statementLinkLabel": coalesce(  select($locale == "ru" => statementLinkLabel.ru, $locale == "zh" => statementLinkLabel.zh, statementLinkLabel.en),  statementLinkLabel.en, statementLinkLabel.ru, statementLinkLabel.zh),  "selectedWorksEyebrow": coalesce(  select($locale == "ru" => selectedWorksEyebrow.ru, $locale == "zh" => selectedWorksEyebrow.zh, selectedWorksEyebrow.en),  selectedWorksEyebrow.en, selectedWorksEyebrow.ru, selectedWorksEyebrow.zh),  "selectedWorksLinkLabel": coalesce(  select($locale == "ru" => selectedWorksLinkLabel.ru, $locale == "zh" => selectedWorksLinkLabel.zh, selectedWorksLinkLabel.en),  selectedWorksLinkLabel.en, selectedWorksLinkLabel.ru, selectedWorksLinkLabel.zh),  "selectedWorksNote": coalesce(  select($locale == "ru" => selectedWorksNote.ru, $locale == "zh" => selectedWorksNote.zh, selectedWorksNote.en),  selectedWorksNote.en, selectedWorksNote.ru, selectedWorksNote.zh),  "featuredEyebrow": coalesce(  select($locale == "ru" => featuredEyebrow.ru, $locale == "zh" => featuredEyebrow.zh, featuredEyebrow.en),  featuredEyebrow.en, featuredEyebrow.ru, featuredEyebrow.zh),  "featuredLinkLabel": coalesce(  select($locale == "ru" => featuredLinkLabel.ru, $locale == "zh" => featuredLinkLabel.zh, featuredLinkLabel.en),  featuredLinkLabel.en, featuredLinkLabel.ru, featuredLinkLabel.zh),  "exhibitionsEyebrow": coalesce(  select($locale == "ru" => exhibitionsEyebrow.ru, $locale == "zh" => exhibitionsEyebrow.zh, exhibitionsEyebrow.en),  exhibitionsEyebrow.en, exhibitionsEyebrow.ru, exhibitionsEyebrow.zh),  "exhibitionsTitle": coalesce(  select($locale == "ru" => exhibitionsTitle.ru, $locale == "zh" => exhibitionsTitle.zh, exhibitionsTitle.en),  exhibitionsTitle.en, exhibitionsTitle.ru, exhibitionsTitle.zh),  "exhibitionsNote": coalesce(  select($locale == "ru" => exhibitionsNote.ru, $locale == "zh" => exhibitionsNote.zh, exhibitionsNote.en),  exhibitionsNote.en, exhibitionsNote.ru, exhibitionsNote.zh),  "exhibitionsLinkLabel": coalesce(  select($locale == "ru" => exhibitionsLinkLabel.ru, $locale == "zh" => exhibitionsLinkLabel.zh, exhibitionsLinkLabel.en),  exhibitionsLinkLabel.en, exhibitionsLinkLabel.ru, exhibitionsLinkLabel.zh),  "exhibitionsImageSrc": exhibitionsImage.asset->url,  "exhibitionsImageAlt": coalesce(coalesce(  select($locale == "ru" => exhibitionsImage.alt.ru, $locale == "zh" => exhibitionsImage.alt.zh, exhibitionsImage.alt.en),  exhibitionsImage.alt.en, exhibitionsImage.alt.ru, exhibitionsImage.alt.zh), "Exhibitions"),  "contactTitle": coalesce(  select($locale == "ru" => contactTitle.ru, $locale == "zh" => contactTitle.zh, contactTitle.en),  contactTitle.en, contactTitle.ru, contactTitle.zh),  "contactHeading": coalesce(  select($locale == "ru" => contactHeading.ru, $locale == "zh" => contactHeading.zh, contactHeading.en),  contactHeading.en, contactHeading.ru, contactHeading.zh),  "contactEyebrow": coalesce(  select($locale == "ru" => contactEyebrow.ru, $locale == "zh" => contactEyebrow.zh, contactEyebrow.en),  contactEyebrow.en, contactEyebrow.ru, contactEyebrow.zh),  "contactLinkLabel": coalesce(  select($locale == "ru" => contactLinkLabel.ru, $locale == "zh" => contactLinkLabel.zh, contactLinkLabel.en),  contactLinkLabel.en, contactLinkLabel.ru, contactLinkLabel.zh),  "statementImageSrc": statementImageOverride.asset->url,  "statementImageAlt": coalesce(coalesce(  select($locale == "ru" => statementImageOverride.alt.ru, $locale == "zh" => statementImageOverride.alt.zh, statementImageOverride.alt.en),  statementImageOverride.alt.en, statementImageOverride.alt.ru, statementImageOverride.alt.zh), "Artist statement"),  "selectedWorks": selectedWorks[]->{    "slug": slug.current, "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), "year": string(year), medium,    "dimensions": select(defined(dimensions.width) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),    "imageSrc": mainImage.asset->url,    "imageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh))  },  "featuredSeries": featuredSeries->{    "slug": slug.current, "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), "description": coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh), startYear, endYear,    "imageSrc": coalesce(heroImage.asset->url, coverImage.asset->url), "imageAlt": coalesce(coalesce(  select($locale == "ru" => coverImage.alt.ru, $locale == "zh" => coverImage.alt.zh, coverImage.alt.en),  coverImage.alt.en, coverImage.alt.ru, coverImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh))  }}
+// Query: *[_type == "homepage"][0] {  "heroEyebrow": coalesce(  select($locale == "ru" => heroEyebrow.ru, $locale == "zh" => heroEyebrow.zh, heroEyebrow.en),  heroEyebrow.en, heroEyebrow.ru, heroEyebrow.zh),  "heroTitle": coalesce(  select($locale == "ru" => heroTitle.ru, $locale == "zh" => heroTitle.zh, heroTitle.en),  heroTitle.en, heroTitle.ru, heroTitle.zh),  "heroSubtitle": coalesce(  select($locale == "ru" => heroSubtitle.ru, $locale == "zh" => heroSubtitle.zh, heroSubtitle.en),  heroSubtitle.en, heroSubtitle.ru, heroSubtitle.zh),  "heroImageSrc": heroImageOverride.asset->url,  "heroImageAlt": coalesce(coalesce(  select($locale == "ru" => heroImageOverride.alt.ru, $locale == "zh" => heroImageOverride.alt.zh, heroImageOverride.alt.en),  heroImageOverride.alt.en, heroImageOverride.alt.ru, heroImageOverride.alt.zh), "Homepage hero"),  "heroArtworkTitle": coalesce(  select($locale == "ru" => heroArtwork->title.ru, $locale == "zh" => heroArtwork->title.zh, heroArtwork->title.en),  heroArtwork->title.en, heroArtwork->title.ru, heroArtwork->title.zh),  "heroArtworkYear": string(heroArtwork->year),  "heroArtworkMedium": coalesce(select($locale == "ru" => heroArtwork->mediumRef->title.ru, $locale == "zh" => heroArtwork->mediumRef->title.zh, heroArtwork->mediumRef->title.en), heroArtwork->mediumRef->title.en, heroArtwork->mediumRef->title.ru, heroArtwork->mediumRef->title.zh, heroArtwork->medium),  "heroArtworkDimensions": select(defined(heroArtwork->dimensions.width) => string(heroArtwork->dimensions.width) + " × " + string(heroArtwork->dimensions.height) + " " + coalesce(heroArtwork->dimensions.unit, "cm"), "—"),  "statementEyebrow": coalesce(  select($locale == "ru" => statementEyebrow.ru, $locale == "zh" => statementEyebrow.zh, statementEyebrow.en),  statementEyebrow.en, statementEyebrow.ru, statementEyebrow.zh),  "statement": coalesce(  select($locale == "ru" => statementText.ru, $locale == "zh" => statementText.zh, statementText.en),  statementText.en, statementText.ru, statementText.zh),  "statementLinkLabel": coalesce(  select($locale == "ru" => statementLinkLabel.ru, $locale == "zh" => statementLinkLabel.zh, statementLinkLabel.en),  statementLinkLabel.en, statementLinkLabel.ru, statementLinkLabel.zh),  "selectedWorksEyebrow": coalesce(  select($locale == "ru" => selectedWorksEyebrow.ru, $locale == "zh" => selectedWorksEyebrow.zh, selectedWorksEyebrow.en),  selectedWorksEyebrow.en, selectedWorksEyebrow.ru, selectedWorksEyebrow.zh),  "selectedWorksLinkLabel": coalesce(  select($locale == "ru" => selectedWorksLinkLabel.ru, $locale == "zh" => selectedWorksLinkLabel.zh, selectedWorksLinkLabel.en),  selectedWorksLinkLabel.en, selectedWorksLinkLabel.ru, selectedWorksLinkLabel.zh),  "selectedWorksNote": coalesce(  select($locale == "ru" => selectedWorksNote.ru, $locale == "zh" => selectedWorksNote.zh, selectedWorksNote.en),  selectedWorksNote.en, selectedWorksNote.ru, selectedWorksNote.zh),  "featuredEyebrow": coalesce(  select($locale == "ru" => featuredEyebrow.ru, $locale == "zh" => featuredEyebrow.zh, featuredEyebrow.en),  featuredEyebrow.en, featuredEyebrow.ru, featuredEyebrow.zh),  "featuredLinkLabel": coalesce(  select($locale == "ru" => featuredLinkLabel.ru, $locale == "zh" => featuredLinkLabel.zh, featuredLinkLabel.en),  featuredLinkLabel.en, featuredLinkLabel.ru, featuredLinkLabel.zh),  exhibitionsMode,  "selectedExhibitionSlugs": selectedExhibitions[]->slug.current,  "exhibitionsEyebrow": coalesce(  select($locale == "ru" => exhibitionsEyebrow.ru, $locale == "zh" => exhibitionsEyebrow.zh, exhibitionsEyebrow.en),  exhibitionsEyebrow.en, exhibitionsEyebrow.ru, exhibitionsEyebrow.zh),  "exhibitionsTitle": coalesce(  select($locale == "ru" => exhibitionsTitle.ru, $locale == "zh" => exhibitionsTitle.zh, exhibitionsTitle.en),  exhibitionsTitle.en, exhibitionsTitle.ru, exhibitionsTitle.zh),  "exhibitionsNote": coalesce(  select($locale == "ru" => exhibitionsNote.ru, $locale == "zh" => exhibitionsNote.zh, exhibitionsNote.en),  exhibitionsNote.en, exhibitionsNote.ru, exhibitionsNote.zh),  "exhibitionsLinkLabel": coalesce(  select($locale == "ru" => exhibitionsLinkLabel.ru, $locale == "zh" => exhibitionsLinkLabel.zh, exhibitionsLinkLabel.en),  exhibitionsLinkLabel.en, exhibitionsLinkLabel.ru, exhibitionsLinkLabel.zh),  "exhibitionsImageSrc": exhibitionsImage.asset->url,  "exhibitionsImageAlt": coalesce(coalesce(  select($locale == "ru" => exhibitionsImage.alt.ru, $locale == "zh" => exhibitionsImage.alt.zh, exhibitionsImage.alt.en),  exhibitionsImage.alt.en, exhibitionsImage.alt.ru, exhibitionsImage.alt.zh), "Exhibitions"),  "contactTitle": coalesce(  select($locale == "ru" => contactTitle.ru, $locale == "zh" => contactTitle.zh, contactTitle.en),  contactTitle.en, contactTitle.ru, contactTitle.zh),  "contactHeading": coalesce(  select($locale == "ru" => contactHeading.ru, $locale == "zh" => contactHeading.zh, contactHeading.en),  contactHeading.en, contactHeading.ru, contactHeading.zh),  "contactEyebrow": coalesce(  select($locale == "ru" => contactEyebrow.ru, $locale == "zh" => contactEyebrow.zh, contactEyebrow.en),  contactEyebrow.en, contactEyebrow.ru, contactEyebrow.zh),  "contactLinkLabel": coalesce(  select($locale == "ru" => contactLinkLabel.ru, $locale == "zh" => contactLinkLabel.zh, contactLinkLabel.en),  contactLinkLabel.en, contactLinkLabel.ru, contactLinkLabel.zh),  "seoTitle": coalesce(  select($locale == "ru" => seo.title.ru, $locale == "zh" => seo.title.zh, seo.title.en),  seo.title.en, seo.title.ru, seo.title.zh),  "seoDescription": coalesce(  select($locale == "ru" => seo.description.ru, $locale == "zh" => seo.description.zh, seo.description.en),  seo.description.en, seo.description.ru, seo.description.zh),  "seoImageSrc": seo.ogImage.asset->url,  "statementImageSrc": statementImageOverride.asset->url,  "statementImageAlt": coalesce(coalesce(  select($locale == "ru" => statementImageOverride.alt.ru, $locale == "zh" => statementImageOverride.alt.zh, statementImageOverride.alt.en),  statementImageOverride.alt.en, statementImageOverride.alt.ru, statementImageOverride.alt.zh), "Artist statement"),  "selectedWorks": selectedWorks[]->{    "slug": slug.current, "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), "year": string(year), "medium": coalesce(select($locale == "ru" => mediumRef->title.ru, $locale == "zh" => mediumRef->title.zh, mediumRef->title.en), mediumRef->title.en, mediumRef->title.ru, mediumRef->title.zh, medium),    "dimensions": select(defined(dimensions.width) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),    "imageSrc": mainImage.asset->url,    "imageAlt": coalesce(coalesce(  select($locale == "ru" => mainImage.alt.ru, $locale == "zh" => mainImage.alt.zh, mainImage.alt.en),  mainImage.alt.en, mainImage.alt.ru, mainImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh))  },  "featuredSeries": featuredSeries->{    "slug": slug.current, "title": coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh), "description": coalesce(  select($locale == "ru" => introduction.ru, $locale == "zh" => introduction.zh, introduction.en),  introduction.en, introduction.ru, introduction.zh), startYear, endYear,    "imageSrc": coalesce(heroImage.asset->url, coverImage.asset->url), "imageAlt": coalesce(coalesce(  select($locale == "ru" => coverImage.alt.ru, $locale == "zh" => coverImage.alt.zh, coverImage.alt.en),  coverImage.alt.en, coverImage.alt.ru, coverImage.alt.zh), coalesce(  select($locale == "ru" => title.ru, $locale == "zh" => title.zh, title.en),  title.en, title.ru, title.zh))  }}
 export type LocalizedHomepageQueryResult = {
   heroEyebrow: string | null;
   heroTitle: string | null;
@@ -1064,6 +1154,8 @@ export type LocalizedHomepageQueryResult = {
   selectedWorksNote: string | null;
   featuredEyebrow: string | null;
   featuredLinkLabel: string | null;
+  exhibitionsMode: "latest" | "manual" | null;
+  selectedExhibitionSlugs: Array<string> | null;
   exhibitionsEyebrow: string | null;
   exhibitionsTitle: string | null;
   exhibitionsNote: string | null;
@@ -1074,6 +1166,9 @@ export type LocalizedHomepageQueryResult = {
   contactHeading: string | null;
   contactEyebrow: string | null;
   contactLinkLabel: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageSrc: string | null;
   statementImageSrc: string | null;
   statementImageAlt: string | "Artist statement";
   selectedWorks: Array<{

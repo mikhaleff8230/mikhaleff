@@ -5,6 +5,7 @@ import { Group, Image as KonvaImage, Layer, Rect, Stage } from "react-konva";
 import type Konva from "konva";
 import type { ArtworkCard, InteriorScene } from "@/types/content";
 import { trackEvent } from "@/lib/analytics/events";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 
 const wallColors = [
   { label: "Original", value: "transparent" },
@@ -34,9 +35,11 @@ function cover(image: HTMLImageElement | undefined, width: number, height: numbe
   return { x: (width - nextWidth) / 2, y: (height - nextHeight) / 2, width: nextWidth, height: nextHeight };
 }
 
-export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: ArtworkCard; scenes: readonly InteriorScene[]; onClose: () => void }) {
+export function ViewInSpaceModal({ artwork, scenes, locale, onClose }: { artwork: ArtworkCard; scenes: readonly InteriorScene[]; locale: string; onClose: () => void }) {
   const initialScene = Math.max(0, scenes.findIndex((scene) => scene.slug === artwork.preferredInteriorSceneSlug));
+  const labels = getInterfaceCopy(locale).space;
   const [sceneIndex, setSceneIndex] = useState(initialScene);
+  const [mobile, setMobile] = useState(false);
   const [canvas, setCanvas] = useState({ width: 1280, height: 720 });
   const [customSceneUrl, setCustomSceneUrl] = useState<string | null>(null);
   const canUseTrueScale = Boolean(!customSceneUrl && artwork.widthCm && artwork.heightCm && scenes[sceneIndex]?.wallPhysicalWidthCm && artwork.trueScaleEnabled !== false);
@@ -50,9 +53,18 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
   const closeRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scene = scenes[sceneIndex] ?? scenes[0];
-  const sceneImage = useCanvasImage(customSceneUrl || scene.image.src);
+  const sceneSource = customSceneUrl || (mobile && scene.mobileImage ? scene.mobileImage.src : scene.image.src);
+  const sceneImage = useCanvasImage(sceneSource);
   const artSource = artwork.primaryImage ?? artwork.image;
   const artworkImage = useCanvasImage(artSource.src);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px), (pointer: coarse)");
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => () => {
     if (customSceneUrl) URL.revokeObjectURL(customSceneUrl);
@@ -65,7 +77,9 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
     update();
     const observer = new ResizeObserver(update);
     observer.observe(target);
-    return () => observer.disconnect();
+    window.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("resize", update);
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); window.visualViewport?.removeEventListener("resize", update); };
   }, []);
 
   useEffect(() => {
@@ -161,7 +175,7 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
   const endDrag = (event: Konva.KonvaEventObject<DragEvent>) => setPosition({ x: event.target.x(), y: event.target.y() });
 
   return <div className="space-modal" role="dialog" aria-modal="true" aria-label={`View ${artwork.title} in space`} ref={rootRef}>
-    <header><strong>View in space</strong><span>{artwork.title} · {artwork.dimensions}</span><button type="button" onClick={fullscreen}>Fullscreen</button><button type="button" onClick={onClose} ref={closeRef}>Close ×</button></header>
+    <header><strong>{labels.title}</strong><span>{artwork.title} · {artwork.dimensions}</span><button type="button" onClick={fullscreen}>{labels.fullscreen}</button><button type="button" onClick={onClose} ref={closeRef}>{labels.close} ×</button></header>
     <div className="space-modal__canvas" ref={canvasRef}>
       <Stage width={canvas.width} height={canvas.height}>
         <Layer listening={false}>
@@ -176,16 +190,16 @@ export function ViewInSpaceModal({ artwork, scenes, onClose }: { artwork: Artwor
           </Group>
         </Layer>
       </Stage>
-      <div className="space-modal__meta" aria-live="polite"><strong>{artwork.title}</strong><span>{artwork.dimensions}</span><small>{trueScale ? "True scale" : "Scale preview"}</small></div>
+      <div className="space-modal__meta" aria-live="polite"><strong>{artwork.title}</strong><span>{artwork.dimensions}</span><small>{trueScale ? labels.trueScale : labels.previewScale}</small></div>
     </div>
     <aside className="space-controls">
-      <div className="space-control"><span>Scene</span><div>{scenes.map((item, index) => <button className={index === sceneIndex ? "is-active" : undefined} type="button" onClick={() => chooseScene(index)} key={item.slug}>{item.title}</button>)}</div></div>
-      <div className="space-control space-control--upload"><span>Your interior</span><div><button className={customSceneUrl ? "is-active" : undefined} type="button" onClick={() => fileInputRef.current?.click()}>{customSceneUrl ? "Replace photo" : "Upload photo"}</button>{customSceneUrl && <button type="button" onClick={removeCustomRoom}>Remove</button>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={(event) => { uploadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} /><small>Used only in this browser session. Nothing is uploaded or saved.</small></div>
-      <div className="space-control"><span>Measured scale</span><button className={trueScale ? "is-active" : undefined} type="button" onClick={toggleTrueScale} disabled={!canUseTrueScale}>{canUseTrueScale ? (trueScale ? "On" : "Off") : "Unavailable"}</button><small>Uses the artwork dimensions and the calibrated wall width. Free preview is the default.</small></div>
-      <div className="space-control"><span>Size</span><div><button type="button" onClick={() => resize(-0.05)} disabled={trueScale}>−</button><small>{Math.round(manualScale * 100)}%</small><button type="button" onClick={() => resize(0.05)} disabled={trueScale}>＋</button></div></div>
-      {artwork.frameAllowed !== false && <div className="space-control"><span>Frame</span><button className={frame !== "none" ? "is-active" : undefined} type="button" onClick={toggleFrame}>{frame === "none" ? "None" : "Black"}</button></div>}
-      {scene.allowWallColor && <div className="space-control space-control--colors"><span>Wall</span><div>{wallColors.map((color) => <button className={wallColor === color.value ? "is-active" : undefined} type="button" aria-label={color.label} title={color.label} style={{ background: color.value }} onClick={() => setWallColor(color.value)} key={color.label} />)}</div></div>}
-      <button className="space-controls__reset" type="button" onClick={reset}>Reset</button>
+      <div className="space-control"><span>{labels.scene}</span><div>{scenes.map((item, index) => <button className={index === sceneIndex ? "is-active" : undefined} type="button" onClick={() => chooseScene(index)} key={item.slug}>{item.title}</button>)}</div></div>
+      <div className="space-control space-control--upload"><span>{labels.interior}</span><div><button className={customSceneUrl ? "is-active" : undefined} type="button" onClick={() => fileInputRef.current?.click()}>{customSceneUrl ? labels.replace : labels.upload}</button>{customSceneUrl && <button type="button" onClick={removeCustomRoom}>{labels.remove}</button>}</div><input ref={fileInputRef} type="file" accept="image/*" onChange={(event) => { uploadRoom(event.target.files?.[0]); event.currentTarget.value = ""; }} /><small>{labels.private}</small></div>
+      <div className="space-control"><span>{labels.measured}</span><button className={trueScale ? "is-active" : undefined} type="button" onClick={toggleTrueScale} disabled={!canUseTrueScale}>{canUseTrueScale ? (trueScale ? labels.on : labels.off) : labels.unavailable}</button><small>{labels.measuredHelp}</small></div>
+      <div className="space-control"><span>{labels.size}</span><div><button type="button" onClick={() => resize(-0.05)} disabled={trueScale}>−</button><small>{Math.round(manualScale * 100)}%</small><button type="button" onClick={() => resize(0.05)} disabled={trueScale}>＋</button></div></div>
+      {artwork.frameAllowed !== false && <div className="space-control"><span>{labels.frame}</span><button className={frame !== "none" ? "is-active" : undefined} type="button" onClick={toggleFrame}>{frame === "none" ? labels.none : labels.black}</button></div>}
+      {scene.allowWallColor && <div className="space-control space-control--colors"><span>{labels.wall}</span><div>{wallColors.map((color) => <button className={wallColor === color.value ? "is-active" : undefined} type="button" aria-label={color.label} title={color.label} style={{ background: color.value }} onClick={() => setWallColor(color.value)} key={color.label} />)}</div></div>}
+      <button className="space-controls__reset" type="button" onClick={reset}>{labels.reset}</button>
     </aside>
   </div>;
 }

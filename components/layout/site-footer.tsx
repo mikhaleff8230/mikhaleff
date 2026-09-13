@@ -1,6 +1,7 @@
 import { Camera, MessageCircle, Play, Send, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/content/repository";
+import { getInterfaceCopy } from "@/lib/i18n/copy";
 
 function EditorialLink({ href, label, icon: Icon, direct = false }: { href?: string; label: string; icon: LucideIcon; direct?: boolean }) {
   const content = <><Icon aria-hidden="true" /><span>{label}</span><b aria-hidden="true">{href ? "→" : "—"}</b></>;
@@ -9,23 +10,24 @@ function EditorialLink({ href, label, icon: Icon, direct = false }: { href?: str
 
 export async function SiteFooter({ locale }: { locale: string }) {
   const settings = await getSiteSettings(locale);
+  const labels = getInterfaceCopy(locale).footer;
 
   return (
     <footer className="site-footer">
       <div className="site-footer__brand">
         <Link className="wordmark" href={`/${locale}`}>{settings.siteTitle}</Link>
-        <p>© {new Date().getFullYear()} Alexander Mikhaleff.<br />All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Alexander Mikhaleff.<br />{labels.rights}</p>
       </div>
 
       <div className="footer-direct">
-        <p className="footer-label">Direct contact</p>
+        <p className="footer-label">{labels.direct}</p>
         <EditorialLink href={settings.telegram} label="Telegram" icon={Send} direct />
         <EditorialLink href={settings.whatsapp} label="WhatsApp" icon={MessageCircle} direct />
-        <small>Response within 24 hours</small>
+        <small>{labels.response}</small>
       </div>
 
       <div className="site-footer__relations">
-        <p>For collectors, galleries<br />and collaborations.</p>
+        <p>{labels.relations}</p>
         <nav className="footer-social" aria-label="Social media">
           <EditorialLink href={settings.instagram} label="Instagram" icon={Camera} />
           <EditorialLink href={settings.youtube} label="YouTube" icon={Play} />
@@ -36,7 +38,7 @@ export async function SiteFooter({ locale }: { locale: string }) {
       <div className="site-footer__meta">
         <a href={`mailto:${settings.email}`}>{settings.email}</a>
         <span>{settings.location}</span>
-        <a href="#top">To the top ↑</a>
+        <a href="#top">{labels.top} ↑</a>
       </div>
     </footer>
   );

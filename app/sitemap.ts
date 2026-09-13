@@ -1,15 +1,19 @@
 import type { MetadataRoute } from "next";
 import { fallbackLanguages } from "@/lib/i18n/config";
-import { fallbackArtworks } from "@/lib/content/fallback-homepage";
-import { fallbackExhibitions, fallbackJournal, fallbackSeries } from "@/lib/content/fallback-editorial";
+import { getArtworks, getExhibitions, getJournal, getSeries } from "@/lib/content/repository";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [artworks, collections, exhibitions, journal] = await Promise.all([
+    getArtworks("en"), getSeries("en"), getExhibitions("en"), getJournal("en"),
+  ]);
   const sections = ["", "/works", "/collections", "/exhibitions", "/about", "/journal", "/contact"];
   const details = [
-    ...fallbackArtworks.map(({ slug }) => `/works/${slug}`),
-    ...fallbackSeries.map(({ slug }) => `/collections/${slug}`),
-    ...fallbackExhibitions.map(({ slug }) => `/exhibitions/${slug}`),
-    ...fallbackJournal.map(({ slug }) => `/journal/${slug}`),
+    ...artworks.map(({ slug }) => `/works/${slug}`),
+    ...collections.map(({ slug }) => `/collections/${slug}`),
+    ...exhibitions.map(({ slug }) => `/exhibitions/${slug}`),
+    ...journal.map(({ slug }) => `/journal/${slug}`),
   ];
   return [...sections, ...details].flatMap((path) => fallbackLanguages.map(({ code }) => ({
     url: `https://mikhaleff.art/${code}${path}`,

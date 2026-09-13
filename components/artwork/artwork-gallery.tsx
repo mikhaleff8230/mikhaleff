@@ -110,6 +110,7 @@ export function ArtworkGalleryProvider({ artwork, images, children }: { artwork:
 
   const startGesture = (event: PointerEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest("button")) return;
+    event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointers.current.size === 2) {
@@ -122,6 +123,7 @@ export function ArtworkGalleryProvider({ artwork, images, children }: { artwork:
   };
 
   const updateGesture = (event: PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
     if (pointers.current.has(event.pointerId)) pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointers.current.size === 2 && pinch.current) {
       const [a, b] = [...pointers.current.values()];
@@ -155,7 +157,7 @@ export function ArtworkGalleryProvider({ artwork, images, children }: { artwork:
     {children}
     {open && <div className="viewer" role="dialog" aria-modal="true" aria-label={`${artwork.title} fullscreen gallery`} ref={dialogRef}>
       <div className="viewer__top"><strong>{artwork.title}</strong><span>{String(activeIndex + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span><button ref={closeRef} type="button" onClick={closeViewer}>Close ×</button></div>
-      <div className="viewer__canvas" onPointerDown={startGesture} onPointerMove={updateGesture} onPointerUp={endGesture} onPointerCancel={endGesture} onWheel={zoomWithWheel}>
+      <div className="viewer__canvas" onPointerDown={startGesture} onPointerMove={updateGesture} onPointerUp={endGesture} onPointerCancel={endGesture} onLostPointerCapture={endGesture} onWheel={zoomWithWheel}>
         <button className="viewer__previous" type="button" onClick={() => move(-1)} aria-label="Previous image">←</button>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div className="viewer__slide" custom={direction} key={`${current.src}-${current.position ?? "center"}`} variants={{ enter: (moveDirection: number) => ({ opacity: 0, x: `${moveDirection * 3}%` }), center: { opacity: 1, x: "0%" }, exit: (moveDirection: number) => ({ opacity: 0, x: `${moveDirection * -2}%` }) }} initial={reducedMotion ? false : "enter"} animate="center" exit={reducedMotion ? undefined : "exit"} transition={{ duration: reducedMotion ? 0 : 0.52, ease: motionTokens.ease }}>

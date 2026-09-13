@@ -48,3 +48,7 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+/playwright-report/
+/test-results/
+/.tmp/
