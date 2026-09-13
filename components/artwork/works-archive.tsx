@@ -11,12 +11,10 @@ import { trackEvent } from "@/lib/analytics/events";
 import { getInterfaceCopy } from "@/lib/i18n/copy";
 
 type ViewMode = "exhibition" | "grid" | "list";
-type Placement = { top: number; left: number; width: number; depth: number };
+type Placement = { depth: number };
 
 const placements: Placement[] = [
-  { top: 7, left: 10, width: 25, depth: 1 }, { top: 2, left: 60, width: 19, depth: 0.92 },
-  { top: 32, left: 38, width: 28, depth: 1 }, { top: 51, left: 7, width: 18, depth: 0.9 },
-  { top: 62, left: 68, width: 23, depth: 0.96 }, { top: 79, left: 34, width: 20, depth: 0.88 },
+  { depth: 1 }, { depth: 0.92 }, { depth: 1 }, { depth: 0.9 }, { depth: 0.96 }, { depth: 0.88 },
 ];
 
 export function WorksArchive({ locale, artworks }: { locale: string; artworks: readonly ArtworkCard[] }) {
@@ -91,11 +89,11 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
       </div>
 
       {mode === "exhibition" && (
-        <div className="exhibition-stage" style={{ "--exhibition-height": `${Math.max(230, Math.ceil(exhibitionWorks.length / placements.length) * 215)}svh` } as CSSProperties} ref={stageRef} onPointerMove={moveStage} onPointerLeave={() => gsap.to(stageRef.current?.querySelectorAll(".exhibition-work") ?? [], { x: 0, y: 0, duration: 1.4 })}>
+        <div className="exhibition-stage" ref={stageRef} onPointerMove={moveStage} onPointerLeave={() => gsap.to(stageRef.current?.querySelectorAll(".exhibition-work") ?? [], { x: 0, y: 0, duration: 1.4 })}>
           <span className="exhibition-cursor" ref={cursorRef} aria-hidden="true">View</span>
           {exhibitionWorks.map((artwork, index) => {
             const placement = placements[index % placements.length];
-            const style = { "--work-top": `${placement.top}%`, "--work-left": `${placement.left}%`, "--work-width": `${placement.width}%`, "--work-depth": placement.depth, viewTransitionName: `artwork-${artwork.slug}` } as CSSProperties;
+            const style = { "--work-depth": placement.depth, "--artwork-ratio": `${artwork.image.width || 4} / ${artwork.image.height || 5}`, viewTransitionName: `artwork-${artwork.slug}` } as CSSProperties;
             return (
               <button className="exhibition-work" style={style} key={artwork.slug} onClick={() => openArtwork(artwork)}>
                 <span className="exhibition-work__image"><Image src={artwork.image.src} alt={artwork.image.alt} fill sizes="32vw" style={{ objectPosition: artwork.image.position }} /></span>

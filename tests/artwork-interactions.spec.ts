@@ -42,6 +42,22 @@ test("artwork video, zoom pan, View in Space and exhibition rendering work", asy
   await page.goto("/en/works", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Exhibition", exact: true }).click();
   await expect(page.locator(".exhibition-work")).toHaveCount(13);
+  const workBoxes = await page.locator(".exhibition-work").evaluateAll((elements) => elements.map((element) => {
+    const box = element.getBoundingClientRect();
+    return { top: box.top, right: box.right, bottom: box.bottom, left: box.left };
+  }));
+  const stageBox = await page.locator(".exhibition-stage").boundingBox();
+  expect(stageBox).not.toBeNull();
+  if (testInfo.project.name.includes("mobile")) {
+    const verticalGaps = workBoxes.slice(1).map((box, index) => box.top - workBoxes[index].bottom);
+    expect(Math.max(...verticalGaps)).toBeLessThan(64);
+  } else {
+    expect(Math.abs(workBoxes[0].top - workBoxes[1].top)).toBeLessThan(2);
+    expect(Math.abs(workBoxes[1].top - workBoxes[2].top)).toBeLessThan(2);
+    expect(workBoxes[0].left).toBeLessThan(workBoxes[1].left);
+    expect(workBoxes[1].left).toBeLessThan(workBoxes[2].left);
+    expect(stageBox?.height ?? Infinity).toBeLessThan((page.viewportSize()?.height ?? 720) * 5.5);
+  }
   const exhibitionImages = page.locator(".exhibition-work__image img");
   await expect(exhibitionImages.first()).toHaveCSS("object-fit", "contain");
 });
