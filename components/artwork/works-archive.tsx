@@ -93,7 +93,7 @@ export function WorksArchive({ locale, artworks }: { locale: string; artworks: r
       {mode === "exhibition" && (
         <div className="exhibition-stage" style={{ "--exhibition-height": `${Math.max(230, Math.ceil(exhibitionWorks.length / placements.length) * 215)}svh` } as CSSProperties} ref={stageRef} onPointerMove={moveStage} onPointerLeave={() => gsap.to(stageRef.current?.querySelectorAll(".exhibition-work") ?? [], { x: 0, y: 0, duration: 1.4 })}>
           <span className="exhibition-cursor" ref={cursorRef} aria-hidden="true">View</span>
-          {filtered.map((artwork, index) => {
+          {exhibitionWorks.map((artwork, index) => {
             const placement = placements[index % placements.length];
             const style = { "--work-top": `${placement.top}%`, "--work-left": `${placement.left}%`, "--work-width": `${placement.width}%`, "--work-depth": placement.depth, viewTransitionName: `artwork-${artwork.slug}` } as CSSProperties;
             return (
