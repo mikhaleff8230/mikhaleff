@@ -14,6 +14,14 @@ export const fallbackHomepage = {
     linkLabel: "About the artist",
     image: { src: "/artworks/untitled-028.png", alt: "Abstract artwork detail for the artist statement", position: "48% 52%" },
   },
+  film: {
+    enabled: true,
+    poster: { src: "/studio/artist-studio-placeholder.png", alt: "The artist working in the studio", position: "50% 48%" },
+    eyebrow: "The process",
+    title: "Between Matter and Memory",
+    caption: "A short film on art, process and perception.",
+    linkLabel: "Watch full video",
+  },
   selectedWorks: {
     eyebrow: "Selected works",
     linkLabel: "View all works",

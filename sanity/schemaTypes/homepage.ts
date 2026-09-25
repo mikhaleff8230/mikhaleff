@@ -2,7 +2,7 @@ import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const homepage = defineType({
   name: "homepage", title: "Homepage", type: "document",
-  groups: [{ name: "hero", title: "Hero", default: true }, { name: "content", title: "Content" }, { name: "seo", title: "SEO" }],
+  groups: [{ name: "hero", title: "Hero", default: true }, { name: "film", title: "Homepage film" }, { name: "content", title: "Content" }, { name: "seo", title: "SEO" }],
   fields: [
     defineField({ name: "heroArtwork", title: "Hero caption artwork", type: "reference", to: [{ type: "artwork" }], group: "hero", description: "Optional: supplies the artwork caption only. It does not control the Hero image." }),
     defineField({ name: "heroImageOverride", title: "Hero background image", type: "imageWithMetadata", group: "hero", description: "Independent full-screen Hero image. Upload any approved image; it is not taken from an Artwork card.", validation: (rule) => rule.required() }),
@@ -14,6 +14,14 @@ export const homepage = defineType({
     defineField({ name: "statementLinkLabel", type: "localizedString", group: "content" }),
     defineField({ name: "statementImageOverride", title: "Statement section image", type: "imageWithMetadata", group: "content", description: "Independent image for the second homepage section. It never copies the Hero image.", validation: (rule) => rule.required() }),
     defineField({ name: "statementArtwork", title: "Legacy statement artwork", type: "reference", to: [{ type: "artwork" }], group: "content", hidden: true, readOnly: true, description: "Preserved only for migration compatibility; it no longer controls the Statement image." }),
+    defineField({ name: "filmEnabled", title: "Show film section", type: "boolean", group: "film", initialValue: true }),
+    defineField({ name: "filmPoster", title: "Cover image", type: "imageWithMetadata", group: "film", description: "Independent wide cover image shown before playback." }),
+    defineField({ name: "filmFile", title: "Video file", type: "file", group: "film", options: { accept: "video/mp4,video/webm" } }),
+    defineField({ name: "filmExternalUrl", title: "External video file URL", type: "url", group: "film", description: "Optional direct MP4/WebM URL. The uploaded file above has priority." }),
+    defineField({ name: "filmEyebrow", title: "Eyebrow", type: "localizedString", group: "film" }),
+    defineField({ name: "filmTitle", title: "Title", type: "localizedString", group: "film" }),
+    defineField({ name: "filmCaption", title: "Caption", type: "localizedText", group: "film" }),
+    defineField({ name: "filmLinkLabel", title: "Link label", type: "localizedString", group: "film" }),
     defineField({ name: "selectedWorksEyebrow", type: "localizedString", group: "content" }),
     defineField({ name: "selectedWorksLinkLabel", type: "localizedString", group: "content" }),
     defineField({ name: "selectedWorksNote", type: "localizedText", group: "content" }),

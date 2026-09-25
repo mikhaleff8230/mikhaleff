@@ -116,6 +116,7 @@ export type HomepageContent = {
     artwork: Omit<ArtworkCard, "slug" | "image">;
   };
   statement: { eyebrow: string; quote: string; linkLabel: string; image: ImageAsset };
+  film: ArtworkVideo & { enabled: boolean; linkLabel: string };
   selectedWorks: { eyebrow: string; linkLabel: string; note: string; items: readonly ArtworkCard[] };
   featuredSeries: {
     eyebrow: string; title: string; years: string; description: string;
