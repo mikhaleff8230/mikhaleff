@@ -10,9 +10,9 @@ export function SelectedWorks({ locale, content }: { locale: string; content: Ho
         <Link className="text-link" href={`/${locale}/works`}>{content.linkLabel}<span aria-hidden="true">→</span></Link>
       </div>
       <div className="works-row">
-        {content.items.map((artwork, index) => (
-          <Link className="work-card" data-shape={index % 3} key={artwork.slug} href={`/${locale}/works/${artwork.slug}`}>
-            <span className="work-card__image">
+        {content.items.map((artwork) => (
+          <Link className="work-card" key={artwork.slug} href={`/${locale}/works/${artwork.slug}`}>
+            <span className="work-card__image" style={{ aspectRatio: artwork.image.width && artwork.image.height ? `${artwork.image.width} / ${artwork.image.height}` : "4 / 5" }}>
               <Image src={artwork.image.src} alt={artwork.image.alt} fill sizes="(max-width: 767px) 76vw, 20vw"
                 style={{ objectPosition: artwork.image.position }} />
               <span className="work-card__view">View</span>

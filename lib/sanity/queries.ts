@@ -266,7 +266,9 @@ export const localizedHomepageQuery = defineQuery(`*[_type == "homepage"][0] {
     "slug": slug.current, "title": ${localized("title")}, "year": string(year), "medium": coalesce(select($locale == "ru" => mediumRef->title.ru, $locale == "zh" => mediumRef->title.zh, mediumRef->title.en), mediumRef->title.en, mediumRef->title.ru, mediumRef->title.zh, medium),
     "dimensions": select(defined(dimensions.width) => string(dimensions.width) + " × " + string(dimensions.height) + " " + coalesce(dimensions.unit, "cm"), "—"),
     "imageSrc": mainImage.asset->url,
-    "imageAlt": coalesce(${localized("mainImage.alt")}, ${localized("title")})
+    "imageAlt": coalesce(${localized("mainImage.alt")}, ${localized("title")}),
+    "imageWidth": mainImage.asset->metadata.dimensions.width,
+    "imageHeight": mainImage.asset->metadata.dimensions.height
   },
   "featuredSeries": featuredSeries->{
     "slug": slug.current, "title": ${localized("title")}, "description": ${localized("introduction")}, startYear, endYear,

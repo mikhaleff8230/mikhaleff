@@ -26,6 +26,8 @@ function status(value: string | undefined, locale: string): ArtworkCard["status"
 type RawArtworkSummary = Omit<ArtworkCard, "image" | "primaryImage" | "detailImages" | "textureImages" | "exhibition" | "video" | "status"> & {
   imageSrc?: string;
   imageAlt?: string;
+  imageWidth?: number;
+  imageHeight?: number;
   availability?: string;
 };
 
@@ -237,7 +239,7 @@ export async function getHomepage(locale: string): Promise<HomepageContent> {
     const exhibitions = entry.exhibitionsMode === "manual" && entry.selectedExhibitionSlugs?.length
       ? entry.selectedExhibitionSlugs.map((slug) => allExhibitions.find((item) => item.slug === slug)).filter((item): item is (typeof allExhibitions)[number] => Boolean(item))
       : allExhibitions;
-    const selectedWorks = entry.selectedWorks?.length ? entry.selectedWorks.map((work) => ({ ...work, status: status(work.availability, locale), image: image(work.imageSrc, work.imageAlt, fallbackHomepage.hero.image) })) : [...fallbackHomepage.selectedWorks.items];
+    const selectedWorks = entry.selectedWorks?.length ? entry.selectedWorks.map((work) => ({ ...work, status: status(work.availability, locale), image: image(work.imageSrc, work.imageAlt, fallbackHomepage.hero.image, work.imageWidth, work.imageHeight) })) : [...fallbackHomepage.selectedWorks.items];
     const featured = entry.featuredSeries;
     return {
       ...fallbackHomepage,
